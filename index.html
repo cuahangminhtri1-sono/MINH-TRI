@@ -274,7 +274,7 @@ input[type=number]:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255
 input[type=number].on{border-color:var(--mint)}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
 
-/* LIÊN KẾT KG &lt;-&gt; CÁM 5% (BỔ SUNG – không ảnh hưởng phần liều) */
+/* LIÊN KẾT KG &lt;-&gt; CÁM theo ngày tuổi (N1–70: 7,5% · N71+: 6%) – không ảnh hưởng phần liều */
 .sync-hint{font-size:10px;color:var(--mint);letter-spacing:.3px;margin-top:1px;opacity:.85}
 
 /* CONTROLS */
@@ -411,7 +411,7 @@ body.cost-on .totbar{display:block}
         &lt;/div&gt;
         &lt;div class=&quot;sep&quot;&gt;&lt;div class=&quot;sep-l&quot;&gt;&lt;/div&gt;&lt;div class=&quot;sep-t&quot;&gt;HOẶC NHẬP THẲNG&lt;/div&gt;&lt;div class=&quot;sep-l&quot;&gt;&lt;/div&gt;&lt;/div&gt;
         &lt;div class=&quot;fld&quot;&gt;&lt;input type=&quot;number&quot; id=&quot;cTotKg&quot; inputmode=&quot;decimal&quot; placeholder=&quot;300&quot; min=&quot;1&quot; oninput=&quot;onMain(this)&quot;/&gt;&lt;div class=&quot;unit&quot;&gt;TỔNG KG ĐÀN&lt;/div&gt;&lt;/div&gt;
-        &lt;div class=&quot;sync-hint&quot;&gt;↔ Tổng KG ⇄ Cám (5%) · Số con/KG/con để trống&lt;/div&gt;
+        &lt;div class=&quot;sync-hint&quot; id=&quot;syncHint1&quot;&gt;↔ Tổng KG ⇄ Cám · theo ngày tuổi (N1–70: 7,5% · N71+: 6%)&lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
 
@@ -420,7 +420,7 @@ body.cost-on .totbar{display:block}
       &lt;div class=&quot;p-hd&quot;&gt;&lt;span class=&quot;p-ic&quot;&gt;🌾&lt;/span&gt;&lt;span class=&quot;p-tt&quot;&gt;TỔNG CÁM / NGÀY&lt;/span&gt;&lt;span class=&quot;p-sub&quot;&gt;MT8 · MT9 · MT16&lt;/span&gt;&lt;/div&gt;
       &lt;div class=&quot;p-bd&quot;&gt;
         &lt;div class=&quot;fld&quot;&gt;&lt;input type=&quot;number&quot; id=&quot;cFeed&quot; inputmode=&quot;decimal&quot; placeholder=&quot;15&quot; min=&quot;1&quot; oninput=&quot;onMain(this)&quot;/&gt;&lt;div class=&quot;unit&quot;&gt;KG CÁM / NGÀY · BATCH 40% CHO MT16&lt;/div&gt;&lt;/div&gt;
-        &lt;div class=&quot;sync-hint&quot;&gt;↔ Cám ⇄ Tổng KG (5%) · Số con/KG/con để trống&lt;/div&gt;
+        &lt;div class=&quot;sync-hint&quot; id=&quot;syncHint2&quot;&gt;↔ Cám ⇄ Tổng KG · theo ngày tuổi (N1–70: 7,5% · N71+: 6%)&lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
 
@@ -756,13 +756,45 @@ function applyFilter(){
 
 /* ====== TƯƠNG TÁC ====== */
 /* ====== CÁCH NHẬP ======
-   • Cám ⇄ Tổng KG (5%): nhập 1 ô → ô kia tự tính, Số con + KG/con = TRỐNG. (GIỮ NGUYÊN)
+   • Cám ⇄ Tổng KG (% thể trọng theo ngày tuổi): nhập 1 ô → ô kia tự tính, Số con + KG/con = TRỐNG.
    • Đã có Tổng KG rồi nhập Số con → KG/con = Tổng KG / Số con (kg từng con). (MỚI)
    • Nhập đủ Số con + KG/con → Tổng KG &amp; Cám tự tính.
    Khi gõ Số con / KG/con, máy chỉ ghi ra ô KẾT QUẢ, không ghi đè ô đang gõ → không nhảy loạn.
    Xóa trống 1 ô bất kỳ → xóa sạch cả 4 ô.
    KHÔNG đổi công thức liều. */
-var SYNC_PCT=0.05;
+/* ====== QUY ĐỔI TRỌNG LƯỢNG ⇄ CÁM THEO NGÀY TUỔI (CHỈ SỬA ĐÚNG CHỖ NÀY) ======
+   N1 – N70   : cám = 7,5% trọng lượng cơ thể
+   N71 trở đi : cám = 6%   trọng lượng cơ thể
+   Máy nhận biết ngày tuổi theo thứ tự ưu tiên:
+     1) Ô KG/CON đang có số  → mốc chuẩn N70 = 1.100 kg/con  → ≤1.1 : 7,5% · &gt;1.1 : 6%
+     2) NGÀY TUỔI đang xem ở màn hình ngoài (ô NGÀY / ngày vào gà)
+     3) Giữ nguyên % vừa dùng gần nhất (mặc định 7,5%)
+   KHÔNG đổi bất kỳ công thức liều nào. */
+var PCT_YOUNG=0.075, PCT_OLD=0.06, AGE_SPLIT=70, KG_SPLIT=1.1;
+var SYNC_PCT=PCT_YOUNG;
+function outerDay(){
+  try{
+    var p=window.parent; if(!p||p===window) return 0;
+    var nv=(p.numVal==null)?&#x27;&#x27;:String(p.numVal).trim();
+    var d=(nv!==&#x27;&#x27;)?parseInt(nv,10):((typeof p.todayN===&#x27;function&#x27;)?p.todayN():0);
+    return (d&gt;0&amp;&amp;d&lt;=400)?d:0;
+  }catch(e){ return 0; }
+}
+function showPct(k){
+  var t=k?(&#x27;đang dùng &#x27;+((SYNC_PCT===PCT_OLD)?&#x27;6%&#x27;:&#x27;7,5%&#x27;)):&#x27;theo ngày tuổi&#x27;;
+  var e1=document.getElementById(&#x27;syncHint1&#x27;);
+  if(e1) e1.textContent=&#x27;↔ Tổng KG ⇄ Cám · &#x27;+t+&#x27; (N1–70: 7,5% · N71+: 6%)&#x27;;
+  var e2=document.getElementById(&#x27;syncHint2&#x27;);
+  if(e2) e2.textContent=&#x27;↔ Cám ⇄ Tổng KG · &#x27;+t+&#x27; (N1–70: 7,5% · N71+: 6%)&#x27;;
+}
+function feedPct(){
+  var p=0, K=num(&#x27;cKgB&#x27;);
+  if(K&gt;0){ p=(K&lt;=KG_SPLIT+1e-9)?PCT_YOUNG:PCT_OLD; }
+  else { var d=outerDay(); if(d&gt;0) p=(d&lt;=AGE_SPLIT)?PCT_YOUNG:PCT_OLD; }
+  if(!(p&gt;0)) p=SYNC_PCT;
+  SYNC_PCT=p; showPct(1);
+  return p;
+}
 var WSRC=&#x27;none&#x27;;   // nguồn trọng lượng đang dùng: &#x27;none&#x27; | &#x27;total&#x27; (Cám/Tổng KG) | &#x27;perbird&#x27; (KG/con)
 function cvFmt(v){if(!isFinite(v)||v&lt;=0)return&#x27;&#x27;;return (Math.round(v*1000)/1000).toString();}
 function setVal(id,v){var el=document.getElementById(id);if(el)el.value=v;}
@@ -777,7 +809,7 @@ function onMain(el){
   // XÓA TRỐNG 1 ô bất kỳ → xóa sạch tất cả các ô còn lại + reset nguồn (đỡ phải xóa nhiều lần)
   if((el.value||&#x27;&#x27;).trim()===&#x27;&#x27;){
     [&#x27;cBird&#x27;,&#x27;cKgB&#x27;,&#x27;cTotKg&#x27;,&#x27;cFeed&#x27;].forEach(function(x){ if(x!==id) setVal(x,&#x27;&#x27;); lsSet(x,&#x27;&#x27;); });
-    WSRC=&#x27;none&#x27;;
+    WSRC=&#x27;none&#x27;; SYNC_PCT=PCT_YOUNG; showPct(0);
     calc();
     return;
   }
@@ -785,20 +817,20 @@ function onMain(el){
   var B=num(&#x27;cBird&#x27;), K=num(&#x27;cKgB&#x27;), T=num(&#x27;cTotKg&#x27;), F=num(&#x27;cFeed&#x27;);
 
   if(id===&#x27;cFeed&#x27;){
-    // Cám → Tổng KG (×20) · ĐẶT Số con + KG/con = TRỐNG  (nguồn = tổng)
+    // Cám → Tổng KG (chia % thể trọng theo ngày tuổi) · ĐẶT Số con + KG/con = TRỐNG  (nguồn = tổng)
     WSRC=&#x27;total&#x27;;
-    setVal(&#x27;cTotKg&#x27;, F&gt;0 ? cvFmt(F*20) : &#x27;&#x27;);
+    setVal(&#x27;cTotKg&#x27;, F&gt;0 ? cvFmt(F/feedPct()) : &#x27;&#x27;);
     setVal(&#x27;cBird&#x27;,&#x27;&#x27;); setVal(&#x27;cKgB&#x27;,&#x27;&#x27;);
   } else if(id===&#x27;cTotKg&#x27;){
-    // Tổng KG → Cám (5%) · ĐẶT Số con + KG/con = TRỐNG  (nguồn = tổng)
+    // Tổng KG → Cám (% thể trọng theo ngày tuổi) · ĐẶT Số con + KG/con = TRỐNG  (nguồn = tổng)
     WSRC=&#x27;total&#x27;;
-    setVal(&#x27;cFeed&#x27;, T&gt;0 ? cvFmt(T*SYNC_PCT) : &#x27;&#x27;);
+    setVal(&#x27;cFeed&#x27;, T&gt;0 ? cvFmt(T*feedPct()) : &#x27;&#x27;);
     setVal(&#x27;cBird&#x27;,&#x27;&#x27;); setVal(&#x27;cKgB&#x27;,&#x27;&#x27;);
   } else if(id===&#x27;cKgB&#x27;){
     // Gõ KG/con → coi KG/con là trọng lượng từng con (nguồn = perbird).
-    // Có Số con → Tổng KG = Số con × KG/con, Cám = 5%.
+    // Có Số con → Tổng KG = Số con × KG/con, Cám = % thể trọng theo ngày tuổi.
     WSRC=&#x27;perbird&#x27;;
-    if(B&gt;0 &amp;&amp; K&gt;0){ var tot=B*K; setVal(&#x27;cTotKg&#x27;, cvFmt(tot)); setVal(&#x27;cFeed&#x27;, cvFmt(tot*SYNC_PCT)); }
+    if(B&gt;0 &amp;&amp; K&gt;0){ var tot=B*K; setVal(&#x27;cTotKg&#x27;, cvFmt(tot)); setVal(&#x27;cFeed&#x27;, cvFmt(tot*feedPct())); }
   } else if(id===&#x27;cBird&#x27;){
     // Gõ Số con: chạy theo nguồn trọng lượng đang dùng (chỉ ghi ra ô KẾT QUẢ → không nhảy loạn).
     var src=WSRC;
@@ -807,7 +839,7 @@ function onMain(el){
     if(src===&#x27;total&#x27;){
       if(B&gt;0 &amp;&amp; T&gt;0) setVal(&#x27;cKgB&#x27;, cvFmt(T/B));            // có Tổng KG → KG/con từng con = Tổng KG / Số con
     } else if(src===&#x27;perbird&#x27;){
-      if(B&gt;0 &amp;&amp; K&gt;0){ var t2=B*K; setVal(&#x27;cTotKg&#x27;, cvFmt(t2)); setVal(&#x27;cFeed&#x27;, cvFmt(t2*SYNC_PCT)); }  // Số con × KG/con → Tổng KG &amp; Cám
+      if(B&gt;0 &amp;&amp; K&gt;0){ var t2=B*K; setVal(&#x27;cTotKg&#x27;, cvFmt(t2)); setVal(&#x27;cFeed&#x27;, cvFmt(t2*feedPct())); }  // Số con × KG/con → Tổng KG &amp; Cám
     }
   }
 
@@ -863,7 +895,7 @@ function __autoWeight(w){
   el.className=&#x27;on&#x27;;
   WSRC=&#x27;perbird&#x27;;
   var B=num(&#x27;cBird&#x27;);
-  if(B&gt;0){var t=B*w;setVal(&#x27;cTotKg&#x27;,cvFmt(t));setVal(&#x27;cFeed&#x27;,cvFmt(t*SYNC_PCT));}
+  if(B&gt;0){var t=B*w;setVal(&#x27;cTotKg&#x27;,cvFmt(t));setVal(&#x27;cFeed&#x27;,cvFmt(t*feedPct()));}
   else{setVal(&#x27;cTotKg&#x27;,&#x27;&#x27;);setVal(&#x27;cFeed&#x27;,&#x27;&#x27;);}
   lsSet(&#x27;cBird&#x27;,valOf(&#x27;cBird&#x27;));lsSet(&#x27;cKgB&#x27;,valOf(&#x27;cKgB&#x27;));lsSet(&#x27;cTotKg&#x27;,valOf(&#x27;cTotKg&#x27;));lsSet(&#x27;cFeed&#x27;,valOf(&#x27;cFeed&#x27;));
   calc();
