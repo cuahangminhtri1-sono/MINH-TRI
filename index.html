@@ -274,7 +274,7 @@ input[type=number]:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255
 input[type=number].on{border-color:var(--mint)}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
 
-/* LIÊN KẾT KG &lt;-&gt; CÁM theo ngày tuổi (N1–70: 7,5% · N71+: 6%) – không ảnh hưởng phần liều */
+/* LIÊN KẾT KG &lt;-&gt; CÁM theo ngày tuổi (N1–60: 7,5% · N61–120: 6%) – không ảnh hưởng phần liều */
 .sync-hint{font-size:10px;color:var(--mint);letter-spacing:.3px;margin-top:1px;opacity:.85}
 
 /* CONTROLS */
@@ -411,7 +411,7 @@ body.cost-on .totbar{display:block}
         &lt;/div&gt;
         &lt;div class=&quot;sep&quot;&gt;&lt;div class=&quot;sep-l&quot;&gt;&lt;/div&gt;&lt;div class=&quot;sep-t&quot;&gt;HOẶC NHẬP THẲNG&lt;/div&gt;&lt;div class=&quot;sep-l&quot;&gt;&lt;/div&gt;&lt;/div&gt;
         &lt;div class=&quot;fld&quot;&gt;&lt;input type=&quot;number&quot; id=&quot;cTotKg&quot; inputmode=&quot;decimal&quot; placeholder=&quot;300&quot; min=&quot;1&quot; oninput=&quot;onMain(this)&quot;/&gt;&lt;div class=&quot;unit&quot;&gt;TỔNG KG ĐÀN&lt;/div&gt;&lt;/div&gt;
-        &lt;div class=&quot;sync-hint&quot; id=&quot;syncHint1&quot;&gt;↔ Tổng KG ⇄ Cám · theo ngày tuổi (N1–70: 7,5% · N71+: 6%)&lt;/div&gt;
+        &lt;div class=&quot;sync-hint&quot; id=&quot;syncHint1&quot;&gt;↔ Tổng KG ⇄ Cám · theo ngày tuổi (N1–60: 7,5% · N61–120: 6%)&lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
 
@@ -420,7 +420,7 @@ body.cost-on .totbar{display:block}
       &lt;div class=&quot;p-hd&quot;&gt;&lt;span class=&quot;p-ic&quot;&gt;🌾&lt;/span&gt;&lt;span class=&quot;p-tt&quot;&gt;TỔNG CÁM / NGÀY&lt;/span&gt;&lt;span class=&quot;p-sub&quot;&gt;MT8 · MT9 · MT16&lt;/span&gt;&lt;/div&gt;
       &lt;div class=&quot;p-bd&quot;&gt;
         &lt;div class=&quot;fld&quot;&gt;&lt;input type=&quot;number&quot; id=&quot;cFeed&quot; inputmode=&quot;decimal&quot; placeholder=&quot;15&quot; min=&quot;1&quot; oninput=&quot;onMain(this)&quot;/&gt;&lt;div class=&quot;unit&quot;&gt;KG CÁM / NGÀY · BATCH 40% CHO MT16&lt;/div&gt;&lt;/div&gt;
-        &lt;div class=&quot;sync-hint&quot; id=&quot;syncHint2&quot;&gt;↔ Cám ⇄ Tổng KG · theo ngày tuổi (N1–70: 7,5% · N71+: 6%)&lt;/div&gt;
+        &lt;div class=&quot;sync-hint&quot; id=&quot;syncHint2&quot;&gt;↔ Cám ⇄ Tổng KG · theo ngày tuổi (N1–60: 7,5% · N61–120: 6%)&lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
 
@@ -763,14 +763,14 @@ function applyFilter(){
    Xóa trống 1 ô bất kỳ → xóa sạch cả 4 ô.
    KHÔNG đổi công thức liều. */
 /* ====== QUY ĐỔI TRỌNG LƯỢNG ⇄ CÁM THEO NGÀY TUỔI (CHỈ SỬA ĐÚNG CHỖ NÀY) ======
-   N1 – N70   : cám = 7,5% trọng lượng cơ thể
-   N71 trở đi : cám = 6%   trọng lượng cơ thể
+   N1 – N60   : cám = 7,5% trọng lượng cơ thể
+   N61 – N120 : cám = 6%   trọng lượng cơ thể
    Máy nhận biết ngày tuổi theo thứ tự ưu tiên:
-     1) Ô KG/CON đang có số  → mốc chuẩn N70 = 1.100 kg/con  → ≤1.1 : 7,5% · &gt;1.1 : 6%
+     1) Ô KG/CON đang có số  → mốc chuẩn N60 = 0.900 kg/con  → ≤0.9 : 7,5% · &gt;0.9 : 6%
      2) NGÀY TUỔI đang xem ở màn hình ngoài (ô NGÀY / ngày vào gà)
      3) Giữ nguyên % vừa dùng gần nhất (mặc định 7,5%)
    KHÔNG đổi bất kỳ công thức liều nào. */
-var PCT_YOUNG=0.075, PCT_OLD=0.06, AGE_SPLIT=70, KG_SPLIT=1.1;
+var PCT_YOUNG=0.075, PCT_OLD=0.06, AGE_SPLIT=60, KG_SPLIT=0.9;
 var SYNC_PCT=PCT_YOUNG;
 function outerDay(){
   try{
@@ -783,9 +783,9 @@ function outerDay(){
 function showPct(k){
   var t=k?(&#x27;đang dùng &#x27;+((SYNC_PCT===PCT_OLD)?&#x27;6%&#x27;:&#x27;7,5%&#x27;)):&#x27;theo ngày tuổi&#x27;;
   var e1=document.getElementById(&#x27;syncHint1&#x27;);
-  if(e1) e1.textContent=&#x27;↔ Tổng KG ⇄ Cám · &#x27;+t+&#x27; (N1–70: 7,5% · N71+: 6%)&#x27;;
+  if(e1) e1.textContent=&#x27;↔ Tổng KG ⇄ Cám · &#x27;+t+&#x27; (N1–60: 7,5% · N61–120: 6%)&#x27;;
   var e2=document.getElementById(&#x27;syncHint2&#x27;);
-  if(e2) e2.textContent=&#x27;↔ Cám ⇄ Tổng KG · &#x27;+t+&#x27; (N1–70: 7,5% · N71+: 6%)&#x27;;
+  if(e2) e2.textContent=&#x27;↔ Cám ⇄ Tổng KG · &#x27;+t+&#x27; (N1–60: 7,5% · N61–120: 6%)&#x27;;
 }
 function feedPct(){
   var p=0, K=num(&#x27;cKgB&#x27;);
