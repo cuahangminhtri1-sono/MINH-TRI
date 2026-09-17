@@ -162,7 +162,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
         </div>
         <div class="flock-col">
           <label>HOẶC NGÀY TUỔI HÔM NAY</label>
-          <input type="number" id="fAge" class="flock-inp" inputmode="numeric" min="1" max="120" placeholder="vd: 47" oninput="onFormAge()"/>
+          <input type="number" id="fAge" class="flock-inp" inputmode="numeric" min="0" max="120" placeholder="vd: 47" oninput="onFormAge()"/>
         </div>
       </div>
       <div class="flock-row">
@@ -1105,7 +1105,7 @@ function todayN(){
   if(!hatchVal)return null;
   var a=new Date(hatchVal);a.setHours(0,0,0,0);
   var b=new Date();b.setHours(0,0,0,0);
-  var d=Math.floor((b-a)/86400000)+1;
+  var d=Math.floor((b-a)/86400000);
   return d>=1&&d<=120?d:null;
 }
 function render(){
@@ -1179,7 +1179,7 @@ function loadFlocks(){try{var s=localStorage.getItem(FLOCKS_KEY);var a=s?JSON.pa
 function saveFlocksArr(a){try{localStorage.setItem(FLOCKS_KEY,JSON.stringify(a));}catch(e){}}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ymd(dt){var m=dt.getMonth()+1,d=dt.getDate();return dt.getFullYear()+'-'+(m<10?'0'+m:m)+'-'+(d<10?'0'+d:d);}
-function flockAgeFrom(h){if(!h)return NaN;var a=new Date(h);a.setHours(0,0,0,0);var b=new Date();b.setHours(0,0,0,0);return Math.floor((b-a)/86400000)+1;}
+function flockAgeFrom(h){if(!h)return NaN;var a=new Date(h);a.setHours(0,0,0,0);var b=new Date();b.setHours(0,0,0,0);return Math.floor((b-a)/86400000);}
 function mtToast(msg){var t=gid('mtToast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(window.__mtT);window.__mtT=setTimeout(function(){t.classList.remove('show');},1700);}
 
 function renderFlocks(){
@@ -1191,7 +1191,8 @@ function renderFlocks(){
   list.innerHTML=arr.map(function(f){
     var age=flockAgeFrom(f.hatch),ageTxt,ageCol='#FFB347';
     if(!isFinite(age)){ageTxt='—';ageCol='#888';}
-    else if(age<1){ageTxt='chưa vào';ageCol='#888';}
+    else if(age<0){ageTxt='chưa vào';ageCol='#888';}
+    else if(age===0){ageTxt='N0 · mới vào';ageCol='#3FD97F';}
     else if(age>120){ageTxt='N'+age+' · xuất';ageCol='#EF4444';}
     else{ageTxt='N'+age;}
     var dStr=f.hatch?f.hatch.split('-').reverse().join('/'):'';
@@ -1208,8 +1209,8 @@ function renderFlocks(){
 }
 function clearFlockForm(){['fName','fHatch','fAge','fCount','fEditId'].forEach(function(id){var e=gid(id);if(e)e.value='';});var er=gid('fErr');if(er)er.style.display='none';}
 function toggleFlockForm(){var f=gid('flockForm');if(!f)return;var show=(f.style.display==='none'||f.style.display==='');if(show){clearFlockForm();f.style.display='flex';var n=gid('fName');if(n)n.focus();}else{f.style.display='none';}}
-function onFormAge(){var a=parseInt(gid('fAge').value);var d=gid('fHatch');if(a>=1&&a<=400){var dt=new Date();dt.setHours(0,0,0,0);dt.setDate(dt.getDate()-(a-1));d.value=ymd(dt);}}
-function onFormHatch(){var h=gid('fHatch').value;var ageEl=gid('fAge');if(!ageEl)return;if(h){var ag=flockAgeFrom(h);ageEl.value=(isFinite(ag)&&ag>=1)?ag:'';}}
+function onFormAge(){var a=parseInt(gid('fAge').value);var d=gid('fHatch');if(a>=0&&a<=400){var dt=new Date();dt.setHours(0,0,0,0);dt.setDate(dt.getDate()-a);d.value=ymd(dt);}}
+function onFormHatch(){var h=gid('fHatch').value;var ageEl=gid('fAge');if(!ageEl)return;if(h){var ag=flockAgeFrom(h);ageEl.value=(isFinite(ag)&&ag>=0)?ag:'';}}
 function saveFlockFromForm(){
   var name=(gid('fName').value||'').trim();
   var hatch=gid('fHatch').value;
@@ -1272,10 +1273,11 @@ function applyFlock(id){
   if(!setBirdInCalc(f.count)){var tries=0;var iv=setInterval(function(){tries++;if(setBirdInCalc(f.count)||tries>=20)clearInterval(iv);},150);}
   renderFlocks();
   if(!isFinite(age))mtToast(f.name);
-  else if(age<1)mtToast('“'+f.name+'” chưa tới ngày vào gà');
+  else if(age<0)mtToast('“'+f.name+'” chưa tới ngày vào gà');
+  else if(age===0)mtToast('“'+f.name+'” · hôm nay mới vào gà · mai mới tính N1');
   else if(age>120)mtToast('“'+f.name+'” đã quá 120 ngày · tính tạm theo N120');
   else mtToast('“'+f.name+'” · N'+age+' · '+f.count+' con');
-  if(isFinite(age)&&age>=1){setTimeout(function(){var a=gid('calcProArea');if(a)a.scrollIntoView({behavior:'smooth',block:'start'});},120);}
+  if(isFinite(age)&&age>=0){setTimeout(function(){var a=gid('calcProArea');if(a)a.scrollIntoView({behavior:'smooth',block:'start'});},120);}
 }
 
 render();
