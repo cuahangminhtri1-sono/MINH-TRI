@@ -1103,6 +1103,17 @@ a.btn{text-decoration:none;text-align:center;color:inherit}
 .bill .ln.tot{border-top:1px dashed #999}
 .bill .ft{margin-top:10px;border-top:1px dashed #999;padding-top:8px;font-size:12px;text-align:center}
 .bill .cap{font-size:12px;color:#444;margin:4px 0 2px}
+/* mã QR chuyển khoản trên phiếu */
+.bill .qrb{margin-top:10px;border-top:1px dashed #999;padding-top:8px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.bill .qrt{font-weight:700;font-size:13px;letter-spacing:.04em}
+.bill .qrs{display:block;width:220px;height:220px;cursor:zoom-in}
+.qri{display:flex;flex-direction:column;gap:1px;font-size:13px;text-align:center}
+.qrbig{display:flex;flex-direction:column;align-items:center;gap:8px}
+.qrbig svg{display:block}
+.qrp{display:flex;gap:10px;align-items:center}
+.qrp .qrs{width:132px;height:132px;flex:none;border:1px solid var(--line);border-radius:6px;cursor:zoom-in}
+.ct{display:block;width:100%;text-align:center}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
 
 /* --- sổ --- */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -1325,7 +1336,8 @@ function billText(st,cfg,c){
   L.push(&#x27;(&#x27;+tienChu(c.due)+&#x27;)&#x27;);
   if(c.paid){L.push(&#x27;Khách trả: &#x27;+fmtD(c.paid));L.push(c.remain&gt;0?&#x27;CÒN NỢ: &#x27;+fmtD(c.remain):(c.remain&lt;0?&#x27;Thối lại: &#x27;+fmtD(-c.remain):&#x27;Đã trả đủ&#x27;))}
   if(st.customer.note){L.push(&#x27;&#x27;);L.push(&#x27;Ghi chú: &#x27;+st.customer.note)}
-  if(cfg.bank){L.push(&#x27;&#x27;);L.push(&#x27;Chuyển khoản: &#x27;+cfg.bank)}
+  var q=qrInfo(st,c,cfg),bl=bankLine(cfg);
+  if(bl){L.push(&#x27;&#x27;);L.push(&#x27;Chuyển khoản: &#x27;+bl);if(q){L.push(&#x27;Số tiền chuyển: &#x27;+fmtD(q.amt)+(q.part?&#x27; (còn nợ)&#x27;:&#x27;&#x27;));L.push(&#x27;Nội dung chuyển khoản: &#x27;+q.note)}}
   return L.join(&#x27;\n&#x27;);
 }
 /* ----- đọc số từ cân điện tử (Bluetooth / serial) ----- */
@@ -1387,10 +1399,136 @@ function rasterCmd(mono,width,height){
   }
   out[p++]=0x0A;out[p++]=0x0A;out[p++]=0x0A;return out;
 }
+/* ----- MÃ QR CHUYỂN KHOẢN (VietQR — chuẩn NAPAS/EMVCo): tự tạo ngay trên máy, không cần mạng ----- */
+function noDau(s){s=String(s==null?&#x27;&#x27;:s);try{s=s.normalize(&#x27;NFD&#x27;)}catch(e){}return s.replace(/[̀-ͯ]/g,&#x27;&#x27;).replace(/đ/g,&#x27;d&#x27;).replace(/Đ/g,&#x27;D&#x27;)}
+/* số điện thoại lấy từ danh bạ: +84 912 345 678 → 0912345678 (giống app Sổ Nợ) */
+function cleanTel(t){t=String(t||&#x27;&#x27;).replace(/[\s\-().]/g,&#x27;&#x27;);if(t.indexOf(&#x27;+84&#x27;)===0)t=&#x27;0&#x27;+t.slice(3);else if(t.indexOf(&#x27;0084&#x27;)===0)t=&#x27;0&#x27;+t.slice(4);else if(/^84\d{9,10}$/.test(t))t=&#x27;0&#x27;+t.slice(2);return t}
+/* nội dung chuyển khoản: không dấu, chỉ chữ + số + khoảng trắng, in hoa — app ngân hàng nào cũng nhận */
+function ckClean(s,max){max=max||25;s=noDau(s).toUpperCase().replace(/[^A-Z0-9 ]+/g,&#x27; &#x27;).replace(/\s+/g,&#x27; &#x27;).trim();if(s.length&gt;max){var c=s.slice(0,max+1),k=c.lastIndexOf(&#x27; &#x27;);s=(k&gt;0?c.slice(0,k):s.slice(0,max)).trim()}return s}
+function accClean(s){return noDau(s).replace(/[^0-9A-Za-z]/g,&#x27;&#x27;).slice(0,19)}
+function nameClean(s){return noDau(s).toUpperCase().replace(/[^A-Z ]+/g,&#x27; &#x27;).replace(/\s+/g,&#x27; &#x27;).trim().slice(0,50)}
+/* mã ngân hàng (BIN) theo danh sách của Ngân hàng Nhà nước; app Sổ Nợ dùng cùng mã */
+var BANKS=[[&#x27;970405&#x27;,&#x27;Agribank&#x27;],[&#x27;970436&#x27;,&#x27;Vietcombank&#x27;],[&#x27;970415&#x27;,&#x27;VietinBank&#x27;],[&#x27;970418&#x27;,&#x27;BIDV&#x27;],[&#x27;970422&#x27;,&#x27;MB Bank&#x27;],[&#x27;970407&#x27;,&#x27;Techcombank&#x27;],[&#x27;970416&#x27;,&#x27;ACB&#x27;],[&#x27;970432&#x27;,&#x27;VPBank&#x27;],[&#x27;970403&#x27;,&#x27;Sacombank&#x27;],[&#x27;970423&#x27;,&#x27;TPBank&#x27;],[&#x27;970449&#x27;,&#x27;LPBank (LienVietPostBank)&#x27;],[&#x27;970437&#x27;,&#x27;HDBank&#x27;],[&#x27;970441&#x27;,&#x27;VIB&#x27;],[&#x27;970443&#x27;,&#x27;SHB&#x27;],[&#x27;970431&#x27;,&#x27;Eximbank&#x27;],[&#x27;970426&#x27;,&#x27;MSB&#x27;],[&#x27;970440&#x27;,&#x27;SeABank&#x27;],[&#x27;970448&#x27;,&#x27;OCB&#x27;],[&#x27;970428&#x27;,&#x27;Nam A Bank&#x27;],[&#x27;970409&#x27;,&#x27;Bac A Bank&#x27;],[&#x27;970425&#x27;,&#x27;ABBank&#x27;],[&#x27;970412&#x27;,&#x27;PVcomBank&#x27;],[&#x27;970419&#x27;,&#x27;NCB&#x27;],[&#x27;970452&#x27;,&#x27;Kienlongbank&#x27;],[&#x27;970433&#x27;,&#x27;VietBank&#x27;],[&#x27;970430&#x27;,&#x27;PGBank&#x27;],[&#x27;970414&#x27;,&#x27;MBV (OceanBank)&#x27;],[&#x27;970438&#x27;,&#x27;BaoViet Bank&#x27;],[&#x27;970427&#x27;,&#x27;VietABank&#x27;],[&#x27;970454&#x27;,&#x27;BVBank (Bản Việt)&#x27;],[&#x27;970429&#x27;,&#x27;SCB&#x27;],[&#x27;970400&#x27;,&#x27;Saigonbank&#x27;],[&#x27;970406&#x27;,&#x27;Vikki Bank (DongA Bank)&#x27;],[&#x27;970408&#x27;,&#x27;GPBank&#x27;],[&#x27;970444&#x27;,&#x27;VCBNeo (CBBank)&#x27;],[&#x27;970446&#x27;,&#x27;Co-opBank (Ngân hàng Hợp tác xã)&#x27;],[&#x27;970421&#x27;,&#x27;VRB (Việt – Nga)&#x27;],[&#x27;970434&#x27;,&#x27;Indovina Bank (IVB)&#x27;],[&#x27;970424&#x27;,&#x27;Shinhan Bank&#x27;],[&#x27;970457&#x27;,&#x27;Woori Bank&#x27;],[&#x27;970458&#x27;,&#x27;UOB&#x27;],[&#x27;970439&#x27;,&#x27;Public Bank&#x27;],[&#x27;970442&#x27;,&#x27;Hong Leong Bank&#x27;],[&#x27;970410&#x27;,&#x27;Standard Chartered&#x27;],[&#x27;546034&#x27;,&#x27;Cake by VPBank&#x27;]];
+function bankName(bin){for(var i=0;i&lt;BANKS.length;i++)if(BANKS[i][0]===bin)return BANKS[i][1];return&#x27;&#x27;}
+function tlv(id,v){v=String(v);return id+(v.length&lt;10?&#x27;0&#x27;:&#x27;&#x27;)+v.length+v}
+function crc16(s){var c=0xFFFF;for(var i=0;i&lt;s.length;i++){c^=(s.charCodeAt(i)&amp;0xff)&lt;&lt;8;for(var j=0;j&lt;8;j++)c=c&amp;0x8000?((c&lt;&lt;1)^0x1021)&amp;0xFFFF:(c&lt;&lt;1)&amp;0xFFFF}return(&#x27;000&#x27;+c.toString(16).toUpperCase()).slice(-4)}
+/* chuỗi VietQR: ngân hàng + số tài khoản + số tiền + nội dung → app ngân hàng nào quét cũng điền sẵn */
+function vietQR(bin,acc,amt,note,svc){
+  amt=Math.round(+amt||0);
+  var s=tlv(&#x27;00&#x27;,&#x27;01&#x27;)+tlv(&#x27;01&#x27;,amt&gt;0?&#x27;12&#x27;:&#x27;11&#x27;)+tlv(&#x27;38&#x27;,tlv(&#x27;00&#x27;,&#x27;A000000727&#x27;)+tlv(&#x27;01&#x27;,tlv(&#x27;00&#x27;,bin)+tlv(&#x27;01&#x27;,acc))+tlv(&#x27;02&#x27;,svc===&#x27;QRIBFTTC&#x27;?&#x27;QRIBFTTC&#x27;:&#x27;QRIBFTTA&#x27;))+
+    tlv(&#x27;53&#x27;,&#x27;704&#x27;)+(amt&gt;0?tlv(&#x27;54&#x27;,amt):&#x27;&#x27;)+tlv(&#x27;58&#x27;,&#x27;VN&#x27;)+(note?tlv(&#x27;62&#x27;,tlv(&#x27;08&#x27;,note)):&#x27;&#x27;)+&#x27;6304&#x27;;
+  return s+crc16(s);
+}
+/* đọc ngược mã QR tài khoản (ảnh lưu từ app ngân hàng) → {bin,acc,svc,name}; không phải mã chuyển khoản / sai mã kiểm tra → null */
+function tlvParse(s){var o={},i=0;while(i&lt;s.length){if(i+4&gt;s.length||!/^\d{4}$/.test(s.substr(i,4)))return null;var id=s.substr(i,2),n=+s.substr(i+2,2);if(i+4+n&gt;s.length)return null;o[id]=s.substr(i+4,n);i+=4+n}return o}
+function parseVietQR(raw){
+  var s=String(raw==null?&#x27;&#x27;:raw).trim();if(s.indexOf(&#x27;000201&#x27;)!==0||s.length&lt;40)return null;
+  var k=s.length-8;if(s.substr(k,4)!==&#x27;6304&#x27;||crc16(s.slice(0,k+4))!==s.slice(k+4).toUpperCase())return null;
+  var t=tlvParse(s.slice(0,k));if(!t||!t[&#x27;38&#x27;])return null;
+  var a=tlvParse(t[&#x27;38&#x27;]);if(!a||a[&#x27;00&#x27;]!==&#x27;A000000727&#x27;||!a[&#x27;01&#x27;]||(a[&#x27;02&#x27;]!==&#x27;QRIBFTTA&#x27;&amp;&amp;a[&#x27;02&#x27;]!==&#x27;QRIBFTTC&#x27;))return null;
+  var b=tlvParse(a[&#x27;01&#x27;]);if(!b||!/^\d{6}$/.test(b[&#x27;00&#x27;]||&#x27;&#x27;)||!/^[0-9A-Za-z]{4,19}$/.test(b[&#x27;01&#x27;]||&#x27;&#x27;))return null;
+  return{bin:b[&#x27;00&#x27;],acc:b[&#x27;01&#x27;],svc:a[&#x27;02&#x27;],name:t[&#x27;59&#x27;]?nameClean(t[&#x27;59&#x27;]):&#x27;&#x27;};
+}
+/* bộ tạo mã QR theo chuẩn ISO/IEC 18004 (cách làm của thư viện mã nguồn mở Nayuki): chọn cỡ nhỏ nhất, mức sửa lỗi ít nhất M, tự nâng lên Q/H nếu cùng cỡ */
+var QRC=(function(){
+  var ECW=[[-1,7,10,15,20,26,18,20,24,30,18,20,24,26,30,22,24,28,30,28,28,28,28,30,30,26,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],
+    [-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28],
+    [-1,13,22,18,26,18,24,18,22,20,24,28,26,24,20,30,24,28,28,26,30,28,30,30,30,30,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],
+    [-1,17,28,22,16,22,28,26,26,24,28,24,28,22,24,24,30,28,28,26,28,30,24,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30]];
+  var NBL=[[-1,1,1,1,1,1,2,2,2,2,4,4,4,4,4,6,6,6,6,7,8,8,9,9,10,12,12,12,13,14,15,16,17,18,19,19,20,21,22,24,25],
+    [-1,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49],
+    [-1,1,1,2,2,4,4,6,6,8,8,8,10,12,16,12,17,16,18,21,20,23,23,25,27,29,34,34,35,38,40,43,45,48,51,53,56,59,62,65,68],
+    [-1,1,1,2,4,4,4,5,6,8,8,11,11,16,16,18,16,19,21,25,25,25,34,30,32,35,37,40,42,45,48,51,54,57,60,63,66,70,74,77,81]];
+  var FMT=[1,0,3,2],AN=&#x27;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:&#x27;;
+  function rawMods(v){var r=(16*v+128)*v+64;if(v&gt;=2){var na=Math.floor(v/7)+2;r-=(25*na-10)*na-55;if(v&gt;=7)r-=36}return r}
+  function dataCw(v,e){return Math.floor(rawMods(v)/8)-ECW[e][v]*NBL[e][v]}
+  function mul(x,y){var z=0;for(var i=7;i&gt;=0;i--){z=(z&lt;&lt;1)^((z&gt;&gt;&gt;7)*0x11D);z^=((y&gt;&gt;&gt;i)&amp;1)*x}return z&amp;0xff}
+  function rsDiv(d){var r=[],i,j,root=1;for(i=0;i&lt;d-1;i++)r.push(0);r.push(1);
+    for(i=0;i&lt;d;i++){for(j=0;j&lt;r.length;j++){r[j]=mul(r[j],root);if(j+1&lt;r.length)r[j]^=r[j+1]}root=mul(root,2)}return r}
+  function rsRem(data,div){var r=[],i,j;for(i=0;i&lt;div.length;i++)r.push(0);
+    for(i=0;i&lt;data.length;i++){var f=data[i]^r.shift();r.push(0);for(j=0;j&lt;div.length;j++)r[j]^=mul(div[j],f)}return r}
+  function make(text,minEcl){
+    text=String(text==null?&#x27;&#x27;:text);
+    var alnum=/^[0-9A-Z $%*+\-.\/:]*$/.test(text),bytes=[],i,j,k;
+    if(!alnum){var u=unescape(encodeURIComponent(text));for(i=0;i&lt;u.length;i++)bytes.push(u.charCodeAt(i))}
+    var n=alnum?text.length:bytes.length,ver,ecl=minEcl==null?1:minEcl;
+    function ccBits(v){return alnum?(v&lt;10?9:v&lt;27?11:13):(v&lt;10?8:16)}
+    function need(v){return 4+ccBits(v)+(alnum?11*Math.floor(n/2)+6*(n%2):8*n)}
+    for(ver=1;;ver++){if(ver&gt;40)return null;if(need(ver)&lt;=dataCw(ver,ecl)*8)break}
+    for(var e=ecl+1;e&lt;=3;e++)if(need(ver)&lt;=dataCw(ver,e)*8)ecl=e;
+    /* dữ liệu → các byte */
+    var bits=[];function put(v,len){for(var q=len-1;q&gt;=0;q--)bits.push((v&gt;&gt;&gt;q)&amp;1)}
+    put(alnum?2:4,4);put(n,ccBits(ver));
+    if(alnum){for(i=0;i+1&lt;n;i+=2)put(AN.indexOf(text.charAt(i))*45+AN.indexOf(text.charAt(i+1)),11);if(n%2)put(AN.indexOf(text.charAt(n-1)),6)}
+    else for(i=0;i&lt;n;i++)put(bytes[i],8);
+    var cap=dataCw(ver,ecl)*8;put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);
+    for(var pad=0xEC;bits.length&lt;cap;pad^=0xEC^0x11)put(pad,8);
+    var dat=[];for(i=0;i&lt;bits.length;i+=8){var by=0;for(k=0;k&lt;8;k++)by=(by&lt;&lt;1)|bits[i+k];dat.push(by)}
+    /* mã sửa lỗi Reed–Solomon cho từng khối rồi xen kẽ các khối */
+    var nb=NBL[ecl][ver],el=ECW[ecl][ver],raw=Math.floor(rawMods(ver)/8),nShort=nb-raw%nb,sLen=Math.floor(raw/nb),div=rsDiv(el),blocks=[],kk=0;
+    for(i=0;i&lt;nb;i++){var d=dat.slice(kk,kk+sLen-el+(i&lt;nShort?0:1));kk+=d.length;var ec=rsRem(d,div);if(i&lt;nShort)d.push(0);blocks.push(d.concat(ec))}
+    var all=[];for(i=0;i&lt;blocks[0].length;i++)for(j=0;j&lt;nb;j++)if(i!==sLen-el||j&gt;=nShort)all.push(blocks[j][i]);
+    /* vẽ các ô cố định: 3 ô vuông định vị, đường nhịp, ô căn chỉnh, thông tin định dạng / phiên bản */
+    var size=ver*4+17,M=[],F=[];
+    for(i=0;i&lt;size;i++){var r1=[],r2=[];for(j=0;j&lt;size;j++){r1.push(false);r2.push(false)}M.push(r1);F.push(r2)}
+    function setF(x,y,dk){M[y][x]=dk;F[y][x]=true}
+    for(i=0;i&lt;size;i++){setF(6,i,i%2===0);setF(i,6,i%2===0)}
+    function finder(cx,cy){for(var dy=-4;dy&lt;=4;dy++)for(var dx=-4;dx&lt;=4;dx++){var ds=Math.max(Math.abs(dx),Math.abs(dy)),xx=cx+dx,yy=cy+dy;if(xx&gt;=0&amp;&amp;xx&lt;size&amp;&amp;yy&gt;=0&amp;&amp;yy&lt;size)setF(xx,yy,ds!==2&amp;&amp;ds!==4)}}
+    finder(3,3);finder(size-4,3);finder(3,size-4);
+    var ap=[];if(ver&gt;1){var na=Math.floor(ver/7)+2,step=Math.floor((ver*8+na*3+5)/(na*4-4))*2;ap=[6];for(var pos=size-7;ap.length&lt;na;pos-=step)ap.splice(1,0,pos)}
+    for(i=0;i&lt;ap.length;i++)for(j=0;j&lt;ap.length;j++){if((i===0&amp;&amp;j===0)||(i===0&amp;&amp;j===ap.length-1)||(i===ap.length-1&amp;&amp;j===0))continue;
+      for(var ay=-2;ay&lt;=2;ay++)for(var ax=-2;ax&lt;=2;ax++)setF(ap[i]+ax,ap[j]+ay,Math.max(Math.abs(ax),Math.abs(ay))!==1)}
+    function fmt(mk){var data=FMT[ecl]&lt;&lt;3|mk,rem=data,q;for(q=0;q&lt;10;q++)rem=(rem&lt;&lt;1)^((rem&gt;&gt;&gt;9)*0x537);var bt=(data&lt;&lt;10|rem)^0x5412;
+      function g(z){return((bt&gt;&gt;&gt;z)&amp;1)!==0}
+      for(q=0;q&lt;=5;q++)setF(8,q,g(q));setF(8,7,g(6));setF(8,8,g(7));setF(7,8,g(8));for(q=9;q&lt;15;q++)setF(14-q,8,g(q));
+      for(q=0;q&lt;8;q++)setF(size-1-q,8,g(q));for(q=8;q&lt;15;q++)setF(8,size-15+q,g(q));setF(8,size-8,true)}
+    fmt(0);
+    if(ver&gt;=7){var rv=ver;for(i=0;i&lt;12;i++)rv=(rv&lt;&lt;1)^((rv&gt;&gt;&gt;11)*0x1F25);var vb=ver&lt;&lt;12|rv;
+      for(i=0;i&lt;18;i++){var cb=((vb&gt;&gt;&gt;i)&amp;1)!==0,va=size-11+i%3,vc=Math.floor(i/3);setF(va,vc,cb);setF(vc,va,cb)}}
+    /* rải dữ liệu theo đường zic-zắc từ góc dưới phải */
+    var bi=0;for(var right=size-1;right&gt;=1;right-=2){if(right===6)right=5;
+      for(var vert=0;vert&lt;size;vert++)for(j=0;j&lt;2;j++){var cx=right-j,up=((right+1)&amp;2)===0,cy=up?size-1-vert:vert;
+        if(!F[cy][cx]&amp;&amp;bi&lt;all.length*8){M[cy][cx]=((all[bi&gt;&gt;&gt;3]&gt;&gt;&gt;(7-(bi&amp;7)))&amp;1)!==0;bi++}}}
+    function msk(mk){for(var y=0;y&lt;size;y++)for(var x=0;x&lt;size;x++){var iv;
+      switch(mk){case 0:iv=(x+y)%2===0;break;case 1:iv=y%2===0;break;case 2:iv=x%3===0;break;case 3:iv=(x+y)%3===0;break;
+        case 4:iv=(Math.floor(x/3)+Math.floor(y/2))%2===0;break;case 5:iv=x*y%2+x*y%3===0;break;case 6:iv=(x*y%2+x*y%3)%2===0;break;default:iv=((x+y)%2+x*y%3)%2===0}
+      if(!F[y][x]&amp;&amp;iv)M[y][x]=!M[y][x]}}
+    /* điểm phạt để chọn mặt nạ dễ quét nhất */
+    function penalty(){
+      var res=0,y,x;
+      function addH(len,h){if(h[0]===0)len+=size;h.pop();h.unshift(len)}
+      function cnt(h){var c=h[1],core=c&gt;0&amp;&amp;h[2]===c&amp;&amp;h[3]===c*3&amp;&amp;h[4]===c&amp;&amp;h[5]===c;return(core&amp;&amp;h[0]&gt;=c*4&amp;&amp;h[6]&gt;=c?1:0)+(core&amp;&amp;h[6]&gt;=c*4&amp;&amp;h[0]&gt;=c?1:0)}
+      for(var pass=0;pass&lt;2;pass++)for(y=0;y&lt;size;y++){var col=false,run=0,hist=[0,0,0,0,0,0,0];
+        for(x=0;x&lt;size;x++){var v=pass?M[x][y]:M[y][x];
+          if(v===col){run++;if(run===5)res+=3;else if(run&gt;5)res++}
+          else{addH(run,hist);if(!col)res+=cnt(hist)*40;col=v;run=1}}
+        if(col){addH(run,hist);run=0}run+=size;addH(run,hist);res+=cnt(hist)*40}
+      for(y=0;y&lt;size-1;y++)for(x=0;x&lt;size-1;x++){var c0=M[y][x];if(c0===M[y][x+1]&amp;&amp;c0===M[y+1][x]&amp;&amp;c0===M[y+1][x+1])res+=3}
+      var dark=0;for(y=0;y&lt;size;y++)for(x=0;x&lt;size;x++)if(M[y][x])dark++;
+      var tot=size*size;res+=(Math.ceil(Math.abs(dark*20-tot*10)/tot)-1)*10;
+      return res;
+    }
+    var best=0,minP=1e15;for(var mk=0;mk&lt;8;mk++){msk(mk);fmt(mk);var pn=penalty();if(pn&lt;minP){minP=pn;best=mk}msk(mk)}
+    msk(best);fmt(best);
+    return{size:size,m:M,ver:ver,ecl:&#x27;LMQH&#x27;.charAt(ecl),mask:best};
+  }
+  return{make:make};
+})();
+/* mã QR → hình SVG (viền trắng 4 ô quanh mã như chuẩn yêu cầu) */
+function qrSvg(q,attrs){if(!q)return&#x27;&#x27;;var b=4,n=q.size+2*b,p=&#x27;&#x27;;
+  for(var y=0;y&lt;q.size;y++){var x=0;while(x&lt;q.size){if(q.m[y][x]){var s=x;while(x&lt;q.size&amp;&amp;q.m[y][x])x++;p+=&#x27;M&#x27;+(s+b)+&#x27; &#x27;+(y+b)+&#x27;h&#x27;+(x-s)+&#x27;v1h-&#x27;+(x-s)+&#x27;z&#x27;}else x++}}
+  return&#x27;&lt;svg &#x27;+(attrs||&#x27;&#x27;)+&#x27; viewBox=&quot;0 0 &#x27;+n+&#x27; &#x27;+n+&#x27;&quot; shape-rendering=&quot;crispEdges&quot; role=&quot;img&quot; aria-label=&quot;Mã QR chuyển khoản&quot;&gt;&lt;rect width=&quot;&#x27;+n+&#x27;&quot; height=&quot;&#x27;+n+&#x27;&quot; fill=&quot;#fff&quot;/&gt;&lt;path d=&quot;&#x27;+p+&#x27;&quot; fill=&quot;#000&quot;/&gt;&lt;/svg&gt;&#x27;}
+/* tài khoản nhận tiền (cài đặt) → dòng chữ + mã QR trên phiếu */
+function bankOK(cf){return /^\d{6}$/.test(cf.bankBin||&#x27;&#x27;)&amp;&amp;/^[0-9A-Za-z]{4,19}$/.test(cf.bankAcc||&#x27;&#x27;)}
+function bankLine(cf){return bankOK(cf)?(bankName(cf.bankBin)||&#x27;Ngân hàng mã &#x27;+cf.bankBin)+&#x27; · STK &#x27;+cf.bankAcc+(cf.bankHolder?&#x27; · &#x27;+cf.bankHolder:&#x27;&#x27;):(cf.bank||&#x27;&#x27;)}
+function ckNote(st,cf){var base=ckClean(cf.ckNote==null?&#x27;BAN GA TU NUOI&#x27;:cf.ckNote,20),d=new Date(st.createdAt||Date.now()),p=function(x){return x&lt;10?&#x27;0&#x27;+x:&#x27;&#x27;+x};return ckClean((base?base+&#x27; &#x27;:&#x27;&#x27;)+p(d.getDate())+p(d.getMonth()+1),25)}
+function qrAmt(c){return c.due&lt;=0?0:(c.paid&gt;0&amp;&amp;c.remain&gt;0?c.remain:c.due)}
+function qrInfo(st,c,cf){if(!bankOK(cf))return null;var amt=qrAmt(c);if(amt&lt;=0)return null;var note=ckNote(st,cf);
+  return{amt:amt,note:note,part:c.paid&gt;0&amp;&amp;c.remain&gt;0,payload:vietQR(cf.bankBin,cf.bankAcc,amt,note,cf.bankSvc)}}
 /* ===CORE-END=== */
 
 /* ---------- môi trường ---------- */
-var CG_VER=&#x27;2026-11-13-CG3&#x27;;
+var CG_VER=&#x27;2026-11-14-CG4&#x27;;
 /* nhận biết đang nằm trong app quy trình bằng chính thẻ khung chứa — không phụ thuộc trang chính đã chạy xong script hay chưa */
 var EMBED=false;try{EMBED=window.parent!==window&amp;&amp;!!window.frameElement&amp;&amp;window.frameElement.id===&#x27;canGaFrame&#x27;}catch(e){EMBED=false}
 var SA=!!window.CANGA_STANDALONE||EMBED, mem={}, RAW={}, FAIL={};
@@ -1404,7 +1542,7 @@ function lsGet(k){var r=lsRaw(k);if(r){try{var v=JSON.parse(r);RAW[k]=r;return v
 function lsSet(k,v){mem[k]=v;var s=JSON.stringify(v);try{localStorage.setItem(k,s);RAW[k]=s;delete FAIL[k]}catch(e){FAIL[k]=1}paintFail()}
 function paintFail(){var el=document.getElementById(&#x27;failBar&#x27;);if(!el)return;var bad=false;for(var k in FAIL)bad=true;el.hidden=!bad}
 var KS=&#x27;canga_v1_state&#x27;,KC=&#x27;canga_v1_cfg&#x27;,KH=&#x27;canga_v1_hist&#x27;,KT=&#x27;canga_v1_trash&#x27;;
-var CFG0={shop:&#x27;&#x27;,shopPhone:&#x27;&#x27;,bank:&#x27;&#x27;,defCon:0,autoDec:0,roundKg:10,roundMoney:1,speak:false,speakRate:1.4,wake:true,lastPrice:0,lastDed:null,theme:&#x27;&#x27;,btAuto:true,btMin:1000,btHold:1200,btBaud:9600,prPaper:&#x27;&#x27;,prSize:&#x27;&#x27;,prName:&#x27;&#x27;};
+var CFG0={shop:&#x27;&#x27;,shopPhone:&#x27;&#x27;,bank:&#x27;&#x27;,bankBin:&#x27;&#x27;,bankAcc:&#x27;&#x27;,bankHolder:&#x27;&#x27;,bankSvc:&#x27;QRIBFTTA&#x27;,ckNote:&#x27;BAN GA TU NUOI&#x27;,defCon:0,autoDec:0,roundKg:10,roundMoney:1,speak:false,speakRate:1.4,wake:true,lastPrice:0,lastDed:null,theme:&#x27;&#x27;,btAuto:true,btMin:1000,btHold:1200,btBaud:9600,prPaper:&#x27;&#x27;,prSize:&#x27;&#x27;,prName:&#x27;&#x27;};
 var cfg=Object.assign({},CFG0,lsGet(KC)||{});
 if(!cfg.theme)cfg.theme=EMBED?&#x27;dark&#x27;:&#x27;auto&#x27;;
 function applyTheme(){var r=document.documentElement;if(cfg.theme===&#x27;light&#x27;||cfg.theme===&#x27;dark&#x27;)r.setAttribute(&#x27;data-theme&#x27;,cfg.theme);else if(SA)r.removeAttribute(&#x27;data-theme&#x27;)}
@@ -1848,7 +1986,7 @@ function renderTien(){
   var fls=loadFlocks(),fsel=&#x27;&#x27;;
   if(fls.length){fsel=&#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;c-flock&quot;&gt;Bán từ đàn (lấy bên quy trình nuôi, không bắt buộc)&lt;/label&gt;&lt;select id=&quot;c-flock&quot; data-k=&quot;c.flock&quot;&gt;&lt;option value=&quot;&quot;&gt;— không chọn —&lt;/option&gt;&#x27;+
     fls.map(function(f){return&#x27;&lt;option value=&quot;&#x27;+esc(f.id)+&#x27;&quot;&#x27;+(state.flock&amp;&amp;state.flock.id===f.id?&#x27; selected&#x27;:&#x27;&#x27;)+&#x27;&gt;&#x27;+esc(f.name)+(f.count?&#x27; · &#x27;+esc(f.count)+&#x27; con&#x27;:&#x27;&#x27;)+&#x27;&lt;/option&gt;&#x27;}).join(&#x27;&#x27;)+&#x27;&lt;/select&gt;&lt;/div&gt;&#x27;}
-  var h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Khách mua&lt;/h2&gt;&lt;div class=&quot;g2&quot;&gt;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;c-name&quot;&gt;Tên khách / lái&lt;/label&gt;&lt;input id=&quot;c-name&quot; data-k=&quot;c.name&quot; list=&quot;dlNames&quot; autocomplete=&quot;off&quot; value=&quot;&#x27;+esc(state.customer.name)+&#x27;&quot;&gt;&lt;datalist id=&quot;dlNames&quot;&gt;&#x27;+dl+&#x27;&lt;/datalist&gt;&lt;/div&gt;&#x27;+
+  var h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Khách mua&lt;/h2&gt;&#x27;+(SA?&#x27;&lt;button class=&quot;btn sm ct&quot; data-act=&quot;pickc&quot;&gt;📇 Lấy tên, số điện thoại khách từ danh bạ&lt;/button&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;div class=&quot;g2&quot;&gt;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;c-name&quot;&gt;Tên khách / lái&lt;/label&gt;&lt;input id=&quot;c-name&quot; data-k=&quot;c.name&quot; list=&quot;dlNames&quot; autocomplete=&quot;off&quot; value=&quot;&#x27;+esc(state.customer.name)+&#x27;&quot;&gt;&lt;datalist id=&quot;dlNames&quot;&gt;&#x27;+dl+&#x27;&lt;/datalist&gt;&lt;/div&gt;&#x27;+
     &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;c-phone&quot;&gt;Số điện thoại&lt;/label&gt;&lt;input id=&quot;c-phone&quot; data-k=&quot;c.phone&quot; inputmode=&quot;tel&quot; value=&quot;&#x27;+esc(state.customer.phone)+&#x27;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div id=&quot;debtChip&quot;&gt;&lt;/div&gt;&#x27;+fsel+
     &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;c-note&quot;&gt;Ghi chú trên phiếu&lt;/label&gt;&lt;input id=&quot;c-note&quot; data-k=&quot;c.note&quot; value=&quot;&#x27;+esc(state.customer.note)+&#x27;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
   state.groups.forEach(function(g){
@@ -1925,7 +2063,11 @@ function billHTML(st,c){
   });
   h+=&#x27;&lt;div class=&quot;lines&quot; style=&quot;margin-top:10px;border-top:1px dashed #999;padding-top:8px&quot;&gt;&#x27;+payLines(c)+&#x27;&lt;/div&gt;&#x27;;
   if(st.customer.note)h+=&#x27;&lt;div style=&quot;margin-top:8px;font-size:13px&quot;&gt;Ghi chú: &#x27;+esc(st.customer.note)+&#x27;&lt;/div&gt;&#x27;;
-  h+=&#x27;&lt;div class=&quot;ft&quot;&gt;&#x27;+(cfg.bank?&#x27;Chuyển khoản: &#x27;+esc(cfg.bank)+&#x27;&lt;br&gt;&#x27;:&#x27;&#x27;)+&#x27;Cảm ơn quý khách!&lt;/div&gt;&lt;/div&gt;&#x27;;
+  var q=qrInfo(st,c,cfg),bl=bankLine(cfg);
+  if(q)h+=&#x27;&lt;div class=&quot;qrb&quot; data-qr=&quot;&#x27;+esc(q.payload)+&#x27;&quot;&gt;&lt;div class=&quot;qrt&quot;&gt;QUÉT MÃ ĐỂ CHUYỂN KHOẢN&lt;/div&gt;&#x27;+qrSvg(QRC.make(q.payload),&#x27;class=&quot;qrs&quot; data-act=&quot;qrbig&quot; data-m=&quot;qrbig&quot;&#x27;)+
+    &#x27;&lt;div class=&quot;qri&quot;&gt;&lt;span&gt;&#x27;+esc(bankName(cfg.bankBin)||&#x27;Ngân hàng mã &#x27;+cfg.bankBin)+&#x27; · &lt;b&gt;&#x27;+esc(cfg.bankAcc)+&#x27;&lt;/b&gt;&lt;/span&gt;&#x27;+(cfg.bankHolder?&#x27;&lt;span&gt;Chủ TK: &lt;b&gt;&#x27;+esc(cfg.bankHolder)+&#x27;&lt;/b&gt;&lt;/span&gt;&#x27;:&#x27;&#x27;)+
+    &#x27;&lt;span&gt;Số tiền: &lt;b&gt;&#x27;+fmtD(q.amt)+&#x27;&lt;/b&gt;&#x27;+(q.part?&#x27; (còn nợ)&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;span&gt;Nội dung: &lt;b&gt;&#x27;+esc(q.note)+&#x27;&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&#x27;;
+  h+=&#x27;&lt;div class=&quot;ft&quot;&gt;&#x27;+(!q&amp;&amp;bl?&#x27;Chuyển khoản: &#x27;+esc(bl)+&#x27;&lt;br&gt;&#x27;:&#x27;&#x27;)+&#x27;Cảm ơn quý khách!&lt;/div&gt;&lt;/div&gt;&#x27;;
   return h;
 }
 function renderPhieu(){
@@ -2116,6 +2258,16 @@ function billLayout(st,c,L,mono){
     else if(cl===&#x27;cap&#x27;){y+=4;P(el.textContent,12,400,{col:C.mut});y+=2}
     else if(has(cl,&#x27;lg&#x27;))ledger(el,has(cl,&#x27;bi&#x27;));
     else if(cl===&#x27;lines&#x27;)lines(el);
+    else if(cl===&#x27;qrb&#x27;){
+      y+=10;HL(x0,y,iw,C.line,3);y+=9;
+      var qt=el.querySelector(&#x27;.qrt&#x27;);if(qt)P(qt.textContent,13,700,{al:&#x27;center&#x27;});y+=2;
+      var qm=QRC.make(el.getAttribute(&#x27;data-qr&#x27;)||&#x27;&#x27;),side=Math.min(iw,mono?iw*0.78:210),qy=y;
+      if(qm)ops.push(function(g,s){var nq=qm.size+8,px=Math.max(1,Math.floor(side*s/nq)),tot=px*nq,X=Math.round((x0+iw/2)*s-tot/2),Y=Math.round(qy*s+(side*s-tot)/2);
+        g.setTransform(1,0,0,1,0,0);g.fillStyle=&#x27;#fff&#x27;;g.fillRect(X,Y,tot,tot);g.fillStyle=&#x27;#000&#x27;;
+        for(var r=0;r&lt;qm.size;r++)for(var cc=0;cc&lt;qm.size;cc++)if(qm.m[r][cc])g.fillRect(X+(cc+4)*px,Y+(r+4)*px,px,px)});
+      y+=side+4;
+      Array.prototype.forEach.call(el.querySelectorAll(&#x27;.qri span&#x27;),function(sp){rich(sp,13,iw).forEach(function(l1){var w=0;l1.forEach(function(k){w=Math.max(w,k.x+tw(k.t,k.f))});var ox=x0+(iw-w)/2;l1.forEach(function(k){T(k.t,ox+k.x,bl(y,18,13),k.f,C.ink)});y+=18})});
+    }
     else if(cl===&#x27;ft&#x27;){
       y+=10;HL(x0,y,iw,C.line,3);y+=9;
       var parts=[&#x27;&#x27;];Array.prototype.forEach.call(el.childNodes,function(n){if(n.nodeType===1&amp;&amp;n.tagName===&#x27;BR&#x27;)parts.push(&#x27;&#x27;);else parts[parts.length-1]+=n.textContent});
@@ -2227,9 +2379,14 @@ var PRINT_CSS=&#x27;@media screen{.pg{display:none!important}}&#x27;+
  &#x27;.pg .ln.tot{border-top:1px dashed #000;padding-top:.35em;margin-top:.2em;font-weight:700}.pg .ln.tot span:last-child{font-weight:700;font-size:1.2em}&#x27;+
  &#x27;.pg .chu{font-size:.93em;font-style:italic}.pg .hint{font-size:.85em}&#x27;+
  &#x27;.pg .ft{margin-top:.7em;border-top:1px dashed #000;padding-top:.55em;font-size:.85em;text-align:center}&#x27;+
+ &#x27;.pg .qrb{display:block;margin-top:.7em;border-top:1px dashed #000;padding-top:.55em;text-align:center;break-inside:avoid;page-break-inside:avoid}&#x27;+
+ &#x27;.pg .qrt{display:block;font-weight:700;font-size:.93em;letter-spacing:.04em}&#x27;+
+ &#x27;.pg .qrs{display:block;width:38mm;height:38mm;margin:.35em auto}&#x27;+
+ &#x27;.pg .qri{display:block;font-size:.93em}.pg .qri span{display:block}&#x27;+
  &#x27;.pg.a4{font-size:14px}.pg.a4 .bill{max-width:170mm;margin:0 auto}.pg.a5{font-size:11.5px}.pg.a5 .bill{max-width:132mm;margin:0 auto}&#x27;+
  &#x27;.pg.th{font-size:12px;width:100%;padding:2mm}.pg.th.p58{max-width:58mm}.pg.th.p80{max-width:80mm}&#x27;+
- &#x27;.pg.th .lg{grid-template-columns:repeat(auto-fill,minmax(4.1em,1fr));gap:.25em}&#x27;;
+ &#x27;.pg.th .lg{grid-template-columns:repeat(auto-fill,minmax(4.1em,1fr));gap:.25em}&#x27;+
+ &#x27;.pg.th .qrs{width:34mm;height:34mm}.pg.th.p80 .qrs{width:44mm;height:44mm}&#x27;;
 function topWin(){if(EMBED){try{var p=window.parent;if(p&amp;&amp;p.document&amp;&amp;p.document.body)return p}catch(e){}}return window}
 function printClean(W){try{var D=W.document;[&#x27;cgPrintHost&#x27;,&#x27;cgPrintCss&#x27;].forEach(function(id){var el=D.getElementById(id);if(el&amp;&amp;el.parentNode)el.parentNode.removeChild(el)});D.documentElement.classList.remove(&#x27;cg-pr&#x27;)}catch(e){}}
 /* mode: &#x27;A4&#x27; | &#x27;A5&#x27; (máy tính) · &#x27;58&#x27; | &#x27;80&#x27; (in nhiệt qua trình duyệt) */
@@ -2375,12 +2532,78 @@ function openHist(id){
     &#x27;&lt;button class=&quot;btn&quot; data-m=&quot;hedit&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Mở lại để sửa&lt;/button&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Đóng&lt;/button&gt;&lt;/div&gt;&#x27;);
 }
 
+/* ---------- lấy tên + số điện thoại từ DANH BẠ điện thoại ---------- */
+var CT={cb:null,name:&#x27;&#x27;,tels:[]};
+/* danh bạ chỉ mở được từ trang chính, không mở được từ khung con: khi Cân Gà nằm trong app quy trình thì nhờ trang chính mở giùm */
+function ctSel(){
+  var W=EMBED?topWin():window,n;
+  if(W!==window){try{n=W.navigator;if(n.contacts&amp;&amp;typeof n.contacts.select===&#x27;function&#x27;){try{return new W.Function(&#x27;p&#x27;,&#x27;o&#x27;,&#x27;return navigator.contacts.select(p,o)&#x27;)}catch(e){}return function(p,o){return n.contacts.select(p,o)}}}catch(e){}}
+  try{n=navigator;if(n.contacts&amp;&amp;typeof n.contacts.select===&#x27;function&#x27;)return function(p,o){return n.contacts.select(p,o)}}catch(e){}
+  return null;
+}
+function ctHelp(err){var a=inApp();
+  return&#x27;&lt;h3&gt;Máy này chưa cho mở danh bạ&lt;/h3&gt;&#x27;+(a?&#x27;&lt;p&gt;Bạn đang mở app bên trong &lt;b&gt;&#x27;+esc(a)+&#x27;&lt;/b&gt;: bấm dấu ⋮ hoặc ··· ở góc màn hình rồi chọn mở bằng trình duyệt &lt;b&gt;Chrome&lt;/b&gt; (Android) hoặc &lt;b&gt;Safari&lt;/b&gt; (iPhone).&lt;/p&gt;&#x27;:&#x27;&#x27;)+
+   &#x27;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Điện thoại Android&lt;/b&gt;: mở app bằng &lt;b&gt;Chrome&lt;/b&gt; là lấy được danh bạ.&lt;/li&gt;&lt;li&gt;&lt;b&gt;iPhone&lt;/b&gt;: Safari tắt sẵn phần này. Bật 1 lần: &lt;b&gt;Cài đặt → Safari → Nâng cao → Tính năng thử nghiệm&lt;/b&gt; (máy đời mới: Cài đặt → Ứng dụng → Safari → Nâng cao → &lt;b&gt;Feature Flags&lt;/b&gt;) → bật &lt;b&gt;Contact Picker API&lt;/b&gt;, rồi mở lại app. Tên mục có thể khác chút tuỳ đời iPhone.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Máy tính&lt;/b&gt;: không có danh bạ điện thoại.&lt;/li&gt;&lt;/ul&gt;&#x27;+
+   &#x27;&lt;p class=&quot;hint&quot;&gt;Chưa lấy được thì cứ gõ tay, phiếu vẫn lưu đủ.&#x27;+(err&amp;&amp;err.name?&#x27; (mã lỗi: &#x27;+esc(err.name)+&#x27;)&#x27;:&#x27;&#x27;)+&#x27;&lt;/p&gt;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Đã hiểu&lt;/button&gt;&lt;/div&gt;&#x27;}
+function pickContact(cb){
+  var sel=ctSel();if(!sel){openModal(ctHelp(),&#x27;ct&#x27;);return}
+  var p;try{p=sel([&#x27;name&#x27;,&#x27;tel&#x27;],{multiple:false})}catch(e){p=Promise.reject(e)}
+  Promise.resolve(p).then(function(a){
+    if(!a||!a.length)return;                                   /* bấm Huỷ trong danh bạ */
+    var c=a[0]||{},name=c.name&amp;&amp;c.name.length?String(c.name[0]).trim():&#x27;&#x27;,tels=[];
+    (c.tel||[]).forEach(function(x){x=cleanTel(x);if(x&amp;&amp;tels.indexOf(x)&lt;0)tels.push(x)});
+    if(!name&amp;&amp;!tels.length){toast(&#x27;Người này trong danh bạ không có tên, không có số&#x27;);return}
+    if(tels.length&gt;1){CT.cb=cb;CT.name=name;CT.tels=tels;
+      openModal(&#x27;&lt;h3&gt;&#x27;+esc(name||&#x27;Người này&#x27;)+&#x27; có &#x27;+tels.length+&#x27; số — chọn số ghi lên phiếu&lt;/h3&gt;&lt;div class=&quot;btns&quot;&gt;&#x27;+tels.map(function(t,i){return&#x27;&lt;button class=&quot;btn&quot; data-m=&quot;ctpick&quot; data-i=&quot;&#x27;+i+&#x27;&quot;&gt;&#x27;+esc(t)+&#x27;&lt;/button&gt;&#x27;}).join(&#x27;&#x27;)+&#x27;&lt;/div&gt;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn&quot; data-m=&quot;close&quot;&gt;Huỷ&lt;/button&gt;&lt;/div&gt;&#x27;,&#x27;ct&#x27;);return}
+    cb(name,tels[0]||&#x27;&#x27;);
+  },function(e){if(e&amp;&amp;e.name===&#x27;AbortError&#x27;)return;openModal(ctHelp(e),&#x27;ct&#x27;)});
+}
+/* ---------- mã QR chuyển khoản: xem trước trong Cài đặt, phóng to, đọc từ ảnh mã QR của ngân hàng ---------- */
+function qrPrevHTML(){
+  if(!bankOK(cfg))return&#x27;&lt;div class=&quot;hint&quot;&gt;&#x27;+(cfg.bank?&#x27;Đang ghi kiểu cũ: “&#x27;+esc(cfg.bank)+&#x27;” (chưa có mã QR). &#x27;:&#x27;&#x27;)+&#x27;Chọn &lt;b&gt;ngân hàng&lt;/b&gt; và gõ &lt;b&gt;số tài khoản&lt;/b&gt; để phiếu có mã QR.&lt;/div&gt;&#x27;+(cfg.bank?&#x27;&lt;button class=&quot;btn sm&quot; data-act=&quot;bankold&quot;&gt;Xoá dòng tài khoản cũ&lt;/button&gt;&#x27;:&#x27;&#x27;);
+  var pay=vietQR(cfg.bankBin,cfg.bankAcc,0,&#x27;&#x27;,cfg.bankSvc);
+  return&#x27;&lt;div class=&quot;qrb qrp&quot; data-qr=&quot;&#x27;+esc(pay)+&#x27;&quot;&gt;&#x27;+qrSvg(QRC.make(pay),&#x27;class=&quot;qrs&quot; data-act=&quot;qrbig&quot;&#x27;)+&#x27;&lt;div class=&quot;hint&quot;&gt;&lt;span class=&quot;qri&quot; hidden&gt;&lt;span&gt;&#x27;+esc(bankName(cfg.bankBin)||&#x27;Ngân hàng mã &#x27;+cfg.bankBin)+&#x27; · &lt;b&gt;&#x27;+esc(cfg.bankAcc)+&#x27;&lt;/b&gt;&lt;/span&gt;&#x27;+(cfg.bankHolder?&#x27;&lt;span&gt;Chủ TK: &lt;b&gt;&#x27;+esc(cfg.bankHolder)+&#x27;&lt;/b&gt;&lt;/span&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&#x27;+
+    &#x27;&lt;b&gt;Quét thử 1 lần&lt;/b&gt; mã này bằng app ngân hàng (dùng điện thoại khác, hoặc chụp màn hình rồi trong app ngân hàng chọn quét từ ảnh): phải ra đúng tên chủ tài khoản&#x27;+(cfg.bankHolder?&#x27; &lt;b&gt;&#x27;+esc(cfg.bankHolder)+&#x27;&lt;/b&gt;&#x27;:&#x27;&#x27;)+&#x27;. Mã thử này chưa có số tiền; trên phiếu, mã có sẵn số tiền phải thu.&lt;/div&gt;&lt;/div&gt;&#x27;;
+}
+function openQrBig(el){
+  var box=el&amp;&amp;el.closest?el.closest(&#x27;.qrb&#x27;):null;if(!box)return;var q=QRC.make(box.getAttribute(&#x27;data-qr&#x27;)||&#x27;&#x27;);if(!q)return;
+  var inf=box.querySelector(&#x27;.qri&#x27;),side=Math.round(Math.max(180,Math.min(window.innerWidth-72,window.innerHeight-300,460)));
+  openModal(&#x27;&lt;h3&gt;Đưa lái quét mã này bằng app ngân hàng&lt;/h3&gt;&lt;div class=&quot;qrbig&quot;&gt;&#x27;+qrSvg(q,&#x27;width=&quot;&#x27;+side+&#x27;&quot; height=&quot;&#x27;+side+&#x27;&quot;&#x27;)+(inf?&#x27;&lt;div class=&quot;qri&quot;&gt;&#x27;+inf.innerHTML+&#x27;&lt;/div&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;+
+    &#x27;&lt;div class=&quot;hint&quot;&gt;Máy lái quét chưa ra thì tăng độ sáng màn hình, để máy cách khoảng một gang tay.&lt;/div&gt;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Xong&lt;/button&gt;&lt;/div&gt;&#x27;,&#x27;qr&#x27;);
+}
+function qrFromImage(f){
+  var BD=window.BarcodeDetector,det=null;
+  try{if(BD)det=new BD({formats:[&#x27;qr_code&#x27;]})}catch(e){det=null}
+  if(!det){openModal(&#x27;&lt;h3&gt;Máy này chưa tự đọc được ảnh mã QR&lt;/h3&gt;&lt;p&gt;Bạn chọn &lt;b&gt;Ngân hàng&lt;/b&gt; rồi gõ &lt;b&gt;Số tài khoản&lt;/b&gt; ngay bên dưới là được (chỉ làm 1 lần), sau đó quét thử mã QR hiện ra để chắc chắn đúng tên.&lt;/p&gt;&lt;p class=&quot;hint&quot;&gt;Đọc ảnh mã QR chạy được trên điện thoại Android mở bằng Chrome.&lt;/p&gt;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Đã hiểu&lt;/button&gt;&lt;/div&gt;&#x27;,&#x27;qrimg&#x27;);return}
+  toast(&#x27;Đang đọc ảnh mã QR…&#x27;);
+  function done(list){
+    var p=null;(list||[]).some(function(x){p=parseVietQR(x&amp;&amp;x.rawValue);return !!p});
+    if(!p){openModal(&#x27;&lt;h3&gt;Ảnh này không có mã QR tài khoản ngân hàng&lt;/h3&gt;&lt;p&gt;Mở app ngân hàng của bạn → mục &lt;b&gt;Nhận tiền&lt;/b&gt; hoặc &lt;b&gt;Mã QR của tôi&lt;/b&gt; → lưu ảnh mã QR về máy (chụp màn hình cũng được), rồi bấm lại nút này và chọn ảnh đó.&lt;/p&gt;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Đã hiểu&lt;/button&gt;&lt;/div&gt;&#x27;,&#x27;qrimg&#x27;);return}
+    cfg.bankBin=p.bin;cfg.bankAcc=p.acc;cfg.bankSvc=p.svc;if(p.name)cfg.bankHolder=p.name;cfg.bank=&#x27;&#x27;;saveCfg();
+    if(curTab===&#x27;cai&#x27;)renderCai();
+    toast(&#x27;Đã lấy: &#x27;+(bankName(p.bin)||&#x27;ngân hàng mã &#x27;+p.bin)+&#x27; · &#x27;+p.acc+&#x27; — nhớ quét thử&#x27;);
+  }
+  function fail(){toast(&#x27;Không đọc được ảnh — thử ảnh khác rõ hơn&#x27;)}
+  function run(src){try{det.detect(src).then(done,fail)}catch(e){fail()}}
+  function viaImg(){try{var u=URL.createObjectURL(f),im=new Image();im.onload=function(){run(im);setTimeout(function(){URL.revokeObjectURL(u)},4000)};im.onerror=function(){URL.revokeObjectURL(u);fail()};im.src=u}catch(e){fail()}}
+  if(window.createImageBitmap)createImageBitmap(f).then(run,viaImg);else viaImg();
+}
+
 /* ---------- thẻ CÀI ĐẶT ---------- */
 function sel(id,key,opts){return&#x27;&lt;select id=&quot;&#x27;+id+&#x27;&quot; data-s=&quot;&#x27;+key+&#x27;&quot;&gt;&#x27;+opts.map(function(o){return&#x27;&lt;option value=&quot;&#x27;+o[0]+&#x27;&quot;&#x27;+(String(cfg[key])===String(o[0])?&#x27; selected&#x27;:&#x27;&#x27;)+&#x27;&gt;&#x27;+o[1]+&#x27;&lt;/option&gt;&#x27;}).join(&#x27;&#x27;)+&#x27;&lt;/select&gt;&#x27;}
 function renderCai(){
-  var h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Thông tin in trên phiếu&lt;/h2&gt;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-shop&quot;&gt;Tên vựa / trại&lt;/label&gt;&lt;input id=&quot;s-shop&quot; data-s=&quot;shop&quot; value=&quot;&#x27;+esc(cfg.shop)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
-   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-phone&quot;&gt;Số điện thoại&lt;/label&gt;&lt;input id=&quot;s-phone&quot; data-s=&quot;shopPhone&quot; inputmode=&quot;tel&quot; value=&quot;&#x27;+esc(cfg.shopPhone)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
-   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-bank&quot;&gt;Tài khoản nhận chuyển khoản&lt;/label&gt;&lt;input id=&quot;s-bank&quot; data-s=&quot;bank&quot; placeholder=&quot;vd MB 0123456789 NGUYEN VAN A&quot; value=&quot;&#x27;+esc(cfg.bank)+&#x27;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&#x27;+
+  var bop=&#x27;&lt;option value=&quot;&quot;&gt;— chọn ngân hàng —&lt;/option&gt;&#x27;+BANKS.map(function(b){return&#x27;&lt;option value=&quot;&#x27;+b[0]+&#x27;&quot;&#x27;+(cfg.bankBin===b[0]?&#x27; selected&#x27;:&#x27;&#x27;)+&#x27;&gt;&#x27;+esc(b[1])+&#x27;&lt;/option&gt;&#x27;}).join(&#x27;&#x27;)+
+    (cfg.bankBin&amp;&amp;!bankName(cfg.bankBin)?&#x27;&lt;option value=&quot;&#x27;+esc(cfg.bankBin)+&#x27;&quot; selected&gt;Ngân hàng mã &#x27;+esc(cfg.bankBin)+&#x27;&lt;/option&gt;&#x27;:&#x27;&#x27;);
+  var h=&#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Thông tin in trên phiếu&lt;/h2&gt;&#x27;+(SA?&#x27;&lt;button class=&quot;btn sm ct&quot; data-act=&quot;pickme&quot;&gt;📇 Lấy tên, số điện thoại từ danh bạ&lt;/button&gt;&#x27;:&#x27;&#x27;)+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-shop&quot;&gt;Tên vựa / trại&lt;/label&gt;&lt;input id=&quot;s-shop&quot; data-s=&quot;shop&quot; value=&quot;&#x27;+esc(cfg.shop)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-phone&quot;&gt;Số điện thoại&lt;/label&gt;&lt;input id=&quot;s-phone&quot; data-s=&quot;shopPhone&quot; inputmode=&quot;tel&quot; value=&quot;&#x27;+esc(cfg.shopPhone)+&#x27;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Tài khoản nhận tiền · mã QR&lt;/h2&gt;&lt;div class=&quot;hint&quot;&gt;Phiếu sẽ in &lt;b&gt;mã QR chuyển khoản&lt;/b&gt;: lái mở app ngân hàng quét là ra sẵn số tài khoản, số tiền, nội dung — khỏi gõ, khỏi nhầm.&lt;/div&gt;&#x27;+
+   &#x27;&lt;label class=&quot;btn sm ct&quot; for=&quot;s-qrimg&quot;&gt;📷 Lấy từ ảnh mã QR ngân hàng của mình&lt;/label&gt;&lt;input type=&quot;file&quot; id=&quot;s-qrimg&quot; class=&quot;vh&quot; accept=&quot;image/*&quot; tabindex=&quot;-1&quot;&gt;&#x27;+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-bin&quot;&gt;Ngân hàng&lt;/label&gt;&lt;select id=&quot;s-bin&quot; data-s=&quot;bankBin&quot;&gt;&#x27;+bop+&#x27;&lt;/select&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-acc&quot;&gt;Số tài khoản&lt;/label&gt;&lt;input id=&quot;s-acc&quot; data-s=&quot;bankAcc&quot; inputmode=&quot;numeric&quot; autocomplete=&quot;off&quot; value=&quot;&#x27;+esc(cfg.bankAcc)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-holder&quot;&gt;Tên chủ tài khoản (in hoa không dấu)&lt;/label&gt;&lt;input id=&quot;s-holder&quot; data-s=&quot;bankHolder&quot; autocomplete=&quot;off&quot; placeholder=&quot;vd NGUYEN VAN A&quot; value=&quot;&#x27;+esc(cfg.bankHolder)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-ck&quot;&gt;Nội dung chuyển khoản — app tự thêm ngày cân vào cuối&lt;/label&gt;&lt;input id=&quot;s-ck&quot; data-s=&quot;ckNote&quot; autocomplete=&quot;off&quot; value=&quot;&#x27;+esc(cfg.ckNote)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div id=&quot;qrPrev&quot;&gt;&#x27;+qrPrevHTML()+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Cách cân&lt;/h2&gt;&lt;button class=&quot;btn dark&quot; data-act=&quot;bt&quot;&gt;Kết nối cân Bluetooth&lt;/button&gt;&#x27;+
    &#x27;&lt;div class=&quot;g2&quot;&gt;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-con&quot;&gt;Số con mặc định mỗi mã&lt;/label&gt;&lt;input id=&quot;s-con&quot; class=&quot;num&quot; data-s=&quot;defCon&quot; inputmode=&quot;numeric&quot; value=&quot;&#x27;+(cfg.defCon||&#x27;&#x27;)+&#x27;&quot;&gt;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-theme&quot;&gt;Màu giao diện&lt;/label&gt;&#x27;+sel(&#x27;s-theme&#x27;,&#x27;theme&#x27;,[[&#x27;auto&#x27;,&#x27;Theo máy&#x27;],[&#x27;light&#x27;,&#x27;Nền sáng (ngoài trời)&#x27;],[&#x27;dark&#x27;,&#x27;Nền tối&#x27;]])+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;+
@@ -2401,6 +2624,9 @@ function renderCai(){
    &#x27;&lt;details&gt;&lt;summary&gt;Xoá hết để cân đợt mới&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Cân&lt;/b&gt;, bấm nút đỏ &lt;b&gt;🗑 Xoá hết&lt;/b&gt; ở đầu sổ cân. App hỏi lại trước khi xoá; phiếu chưa lưu thì chọn &lt;b&gt;Lưu vào Sổ rồi xoá&lt;/b&gt; hoặc &lt;b&gt;Xoá, không lưu&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Xoá hết là xoá &lt;b&gt;phiếu đang cân&lt;/b&gt;: mọi mã cân, bì đã cân, tên khách, tiền cọc / tiền trả / nợ cũ. App &lt;b&gt;giữ lại&lt;/b&gt; giá bán, cách trừ bì và toàn bộ phiếu đã lưu trong thẻ Sổ.&lt;/p&gt;&lt;p&gt;Lỡ tay xoá phiếu chưa lưu: bấm &lt;b&gt;↩ Lấy lại phiếu vừa xoá&lt;/b&gt; hiện ngay trên màn hình cân (còn trong 24 giờ, cho tới lần xoá hết kế tiếp).&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Chia sẻ ảnh phiếu&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Phiếu&lt;/b&gt; bấm &lt;b&gt;📷 Chia sẻ ảnh phiếu&lt;/b&gt;: app tạo một tấm ảnh giống phiếu đang xem, có đủ sổ cân chia cột. Bấm &lt;b&gt;Chia sẻ ảnh&lt;/b&gt; rồi chọn Zalo, hoặc bấm &lt;b&gt;Lưu ảnh&lt;/b&gt; để lưu vào máy. Máy nào không cho chia sẻ thì chạm giữ vào ảnh để lưu.&lt;/p&gt;&lt;p&gt;Phiếu cũ trong thẻ &lt;b&gt;Sổ&lt;/b&gt; cũng chia sẻ ảnh được. Nút &lt;b&gt;Sao chép gửi Zalo&lt;/b&gt; vẫn còn nếu muốn gửi dạng chữ.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;In phiếu: A4/A5, máy in nhiệt, Bluetooth&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Phiếu&lt;/b&gt; bấm &lt;b&gt;🖨 In phiếu&lt;/b&gt; rồi chọn 1 trong 3 cách, giống phần in của app Sổ Nợ:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Máy tính — Phiếu A4/A5&lt;/b&gt;: in máy in thường hoặc lưu thành PDF. Chọn khổ A4 hay A5 ngay bên dưới nút.&lt;/li&gt;&lt;li&gt;&lt;b&gt;In nhiệt qua trình duyệt (58/80mm)&lt;/b&gt;: máy in nhiệt cắm USB / WiFi, AirPrint; chạy cả trên iPhone.&lt;/li&gt;&lt;li&gt;&lt;b&gt;In máy in Bluetooth (nhiệt)&lt;/b&gt;: máy in nhiệt cầm tay. Bấm &lt;b&gt;Kết nối / đổi máy in Bluetooth&lt;/b&gt;, chọn tên máy in, chọn khổ 58mm hay 80mm rồi bấm in. Cần Chrome trên Android hoặc máy tính.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Khổ giấy được nhớ cho lần sau. Phiếu cũ trong thẻ Sổ cũng in được.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Lấy tên, số điện thoại từ danh bạ&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Tính tiền&lt;/b&gt; bấm &lt;b&gt;📇 Lấy tên, số điện thoại khách từ danh bạ&lt;/b&gt;. Ở thẻ &lt;b&gt;Cài đặt&lt;/b&gt; bấm &lt;b&gt;📇 Lấy tên, số điện thoại từ danh bạ&lt;/b&gt; để điền thông tin của mình. Chọn một người trong danh bạ là app điền sẵn tên và số; người có nhiều số thì app hỏi lấy số nào. Số dạng +84 được đổi về 0…&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Android&lt;/b&gt;: mở app bằng &lt;b&gt;Chrome&lt;/b&gt; là dùng được.&lt;/li&gt;&lt;li&gt;&lt;b&gt;iPhone&lt;/b&gt;: Safari tắt sẵn phần này. Bật 1 lần: &lt;b&gt;Cài đặt → Safari → Nâng cao → Tính năng thử nghiệm&lt;/b&gt; (máy đời mới: Cài đặt → Ứng dụng → Safari → Nâng cao → &lt;b&gt;Feature Flags&lt;/b&gt;) → bật &lt;b&gt;Contact Picker API&lt;/b&gt;. Tên mục có thể khác chút tuỳ đời iPhone.&lt;/li&gt;&lt;li&gt;Đang mở app bên trong &lt;b&gt;Zalo / Facebook&lt;/b&gt; thì không lấy được: bấm ⋮ (hoặc ···) chọn mở bằng Chrome hoặc Safari.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Chưa lấy được thì cứ gõ tay như cũ.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Mã QR chuyển khoản trên phiếu&lt;/summary&gt;&lt;p&gt;Cài 1 lần ở &lt;b&gt;Cài đặt → Tài khoản nhận tiền · mã QR&lt;/b&gt;: chọn &lt;b&gt;Ngân hàng&lt;/b&gt;, gõ &lt;b&gt;Số tài khoản&lt;/b&gt; và tên chủ tài khoản. Nhanh hơn: bấm &lt;b&gt;📷 Lấy từ ảnh mã QR ngân hàng của mình&lt;/b&gt; rồi chọn ảnh mã QR đã lưu từ app ngân hàng (chạy trên Android mở bằng Chrome).&lt;/p&gt;&lt;p&gt;Cài xong phải &lt;b&gt;quét thử&lt;/b&gt; mã hiện ngay bên dưới bằng app ngân hàng (dùng điện thoại khác, hoặc chụp màn hình rồi trong app ngân hàng chọn quét từ ảnh): ra &lt;b&gt;đúng tên chủ tài khoản&lt;/b&gt; thì mới dùng.&lt;/p&gt;&lt;p&gt;Từ đó mọi phiếu đều có mã QR: trên màn hình, ảnh chia sẻ, bản in A4/A5, in nhiệt, in Bluetooth. Lái mở app ngân hàng quét là ra sẵn số tài khoản, &lt;b&gt;số tiền&lt;/b&gt; và &lt;b&gt;nội dung&lt;/b&gt;. Số tiền trong mã là số &lt;b&gt;PHẢI THU&lt;/b&gt;; khách đã trả một phần thì là số &lt;b&gt;CÒN NỢ&lt;/b&gt;. Phiếu không còn phải thu thì không in mã.&lt;/p&gt;&lt;p&gt;Ở thẻ Phiếu &lt;b&gt;chạm vào mã QR&lt;/b&gt; để phóng to cho lái quét. Mã được tạo ngay trên máy, không cần mạng, không gửi số tài khoản đi đâu.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Nội dung chuyển khoản và thuế&lt;/summary&gt;&lt;p&gt;App tự ghi nội dung &lt;b&gt;BAN GA TU NUOI&lt;/b&gt; + ngày cân (ví dụ &lt;b&gt;BAN GA TU NUOI 1311&lt;/b&gt;). Muốn đổi thì sửa ô &lt;b&gt;Nội dung chuyển khoản&lt;/b&gt; trong Cài đặt.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Nội dung chuyển khoản không quyết định có bị tính thuế hay không.&lt;/b&gt; Cơ quan thuế xét bản chất của khoản tiền: chỉ tiền từ sản xuất, kinh doanh mới tính; tiền cho, tặng, vay mượn thì không. Ghi sai sự thật (ví dụ ghi “cho mượn”, “trả nợ” cho tiền bán gà) không né được thuế, cơ quan thuế còn coi đó là dấu hiệu gian lận; người chuyển cũng có thể dựa vào chữ “cho mượn” để đòi lại tiền.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Gà tự nuôi bán ra&lt;/b&gt; (gà sống, chưa chế biến) thuộc diện &lt;b&gt;miễn thuế thu nhập cá nhân&lt;/b&gt; và &lt;b&gt;không chịu thuế GTGT&lt;/b&gt;, với điều kiện: chính mình trực tiếp nuôi, có đất / chuồng trại hợp pháp, và cư trú ở địa phương nơi nuôi. Vì vậy ghi đúng &lt;b&gt;BAN GA TU NUOI&lt;/b&gt; và lưu phiếu cân trong thẻ &lt;b&gt;Sổ&lt;/b&gt; chính là giấy tờ có lợi cho mình.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Mua gà về bán lại&lt;/b&gt; là kinh doanh: hộ kinh doanh có doanh thu cả năm từ 1 tỷ đồng trở xuống không phải nộp thuế; trên mức đó phải kê khai. Nội dung chuyển khoản không thay đổi được điều này.&lt;/p&gt;&lt;p class=&quot;hint&quot;&gt;Theo Luật Thuế thu nhập cá nhân 2025, Nghị định 141/2026/NĐ-CP và Công văn 4568/TCT-DNNCN của Tổng cục Thuế. Trường hợp cụ thể nên hỏi thêm cơ quan thuế nơi mình ở.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Đọc to số kg&lt;/summary&gt;&lt;p&gt;Bật &lt;b&gt;Đọc to số kg&lt;/b&gt; ở mục Cách cân, chọn &lt;b&gt;Tốc độ đọc&lt;/b&gt;, rồi bấm &lt;b&gt;🔊 Thử đọc&lt;/b&gt;. Dòng chữ ngay bên dưới cho biết máy đang đọc bằng giọng nào, hoặc vì sao máy không đọc được.&lt;/p&gt;&lt;p&gt;App mượn giọng đọc có sẵn của điện thoại, nên &lt;b&gt;máy chưa có giọng tiếng Việt thì không đọc được&lt;/b&gt;; khi đó app kêu “bíp” thay cho đọc. Cách cài giọng:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Máy Android&lt;/b&gt;: mở Cài đặt của điện thoại, gõ tìm “chuyển văn bản” → mở mục &lt;b&gt;Chuyển văn bản sang lời nói&lt;/b&gt; (có máy ghi “thành giọng nói”) → chọn công cụ của &lt;b&gt;Google&lt;/b&gt; → bấm hình bánh răng → &lt;b&gt;Cài đặt dữ liệu thoại&lt;/b&gt; → chọn &lt;b&gt;Tiếng Việt&lt;/b&gt; để tải về.&lt;/li&gt;&lt;li&gt;&lt;b&gt;iPhone&lt;/b&gt;: Cài đặt → Trợ năng → Nội dung được đọc → Giọng nói → Tiếng Việt.&lt;/li&gt;&lt;li&gt;Đang mở app bên trong &lt;b&gt;Zalo / Facebook&lt;/b&gt;: bấm dấu ⋮ (hoặc ···) rồi chọn mở bằng trình duyệt Chrome hoặc Safari.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Cài xong quay lại app, bấm &lt;b&gt;Thử đọc&lt;/b&gt;. Tên mục trong Cài đặt có thể hơi khác tuỳ hãng máy.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Sổ cân chia cột 5 mã để đối chiếu với lái&lt;/summary&gt;&lt;p&gt;Mỗi cột có đúng 5 mã cân theo thứ tự từ trên xuống, số nhỏ ở góc là số thứ tự mã. Dòng cuối mỗi cột là &lt;b&gt;cộng cột&lt;/b&gt;. Khi lái đọc sổ của họ, hai bên chỉ cần so cộng từng cột; cột nào lệch thì dò 5 số trong cột đó.&lt;/p&gt;&lt;p&gt;Bấm &lt;b&gt;Ẩn phím&lt;/b&gt; để xem được nhiều cột hơn. Chạm vào một số để sửa hoặc xoá. Số màu cam là mã nặng nhẹ khác thường, nên xem lại.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Chọn cách trừ bì (nằm chung một chỗ)&lt;/summary&gt;&lt;p&gt;Ở thẻ Cân bấm nút màu vàng &lt;b&gt;Bì… ▸&lt;/b&gt; (hoặc nút &lt;b&gt;Cách trừ bì&lt;/b&gt; ở thẻ Tính tiền). Chọn 1 trong 5 cách:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Không trừ bì&lt;/b&gt;.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Trừ theo mã cân&lt;/b&gt;: mỗi mã trừ bao nhiêu kg, máy tự nhân với số mã.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Trừ theo số lồng&lt;/b&gt;: số lồng × kg mỗi lồng.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Cân bì rỗng thực tế&lt;/b&gt;: bấm “Cân bì rỗng ngay”, cân các lồng rỗng, xong bấm “Xong, cân gà tiếp”.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Nhập thẳng tổng kg bì&lt;/b&gt;.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Cũng trong bảng đó có &lt;b&gt;Trừ hao %&lt;/b&gt;, &lt;b&gt;Trừ gam/con&lt;/b&gt; và &lt;b&gt;Trừ thêm kg&lt;/b&gt;. Kết quả hiện ngay bên dưới để hai bên cùng xem. Cách trừ bì được nhớ cho phiếu sau.&lt;/p&gt;&lt;/details&gt;&#x27;+
@@ -2508,6 +2734,8 @@ $(&#x27;#modal&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   else if(m===&#x27;pra4&#x27;||m===&#x27;prth&#x27;){var ps=PR.st;closeModal();printDoc(ps,m===&#x27;pra4&#x27;?prSize():prPaper())}
   else if(m===&#x27;prcon&#x27;){if(PR.busy){toast(&#x27;⏳ Đang in — chờ in xong&#x27;);return}prConnect().then(function(){if(modalKind===&#x27;print&#x27;)openPrint(PR.st)})}
   else if(m===&#x27;prbt&#x27;)prBluetooth(PR.st);
+  else if(m===&#x27;ctpick&#x27;){var ctel=CT.tels[+b.dataset.i],ccb=CT.cb;closeModal();if(ccb&amp;&amp;ctel)ccb(CT.name,ctel)}
+  else if(m===&#x27;qrbig&#x27;)openQrBig(b);
 });
 function modalField(e){
   var t=e.target;if(modalKind===&#x27;ded&#x27;&amp;&amp;(t.name===&#x27;dmode&#x27;||/^d-/.test(t.id||&#x27;&#x27;)))dedInput(t);
@@ -2552,6 +2780,7 @@ $(&#x27;#tab-tien&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   else if(a===&#x27;paynone&#x27;){state.paid=0;touch();$(&#x27;#p-paid&#x27;).value=&#x27;&#x27;;updateTien()}
   else if(a===&#x27;takedebt&#x27;){state.oldDebt=parseInt(b.dataset.v,10)||0;touch();$(&#x27;#p-oldDebt&#x27;).value=mval(state.oldDebt);renderDebt();updateTien()}
   else if(a===&#x27;gophieu&#x27;)showTab(&#x27;phieu&#x27;);
+  else if(a===&#x27;pickc&#x27;)pickContact(function(n,t){state.sample=false;if(n)state.customer.name=n;if(t)state.customer.phone=t;touch();renderTien();toast(&#x27;Đã lấy từ danh bạ: &#x27;+[n,t].filter(Boolean).join(&#x27; · &#x27;))});
 });
 $(&#x27;#tab-phieu&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   var b=e.target.closest(&#x27;[data-act]&#x27;);if(!b)return;var a=b.dataset.act,txt=billText(state,cfg,compute(state,cfg));
@@ -2560,24 +2789,34 @@ $(&#x27;#tab-phieu&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   else if(a===&#x27;shimg&#x27;)openShare(state);
   else if(a===&#x27;print&#x27;)openPrint(state);
   else if(a===&#x27;new&#x27;)newBill();
+  else if(a===&#x27;qrbig&#x27;)openQrBig(b);
 });
 $(&#x27;#tab-so&#x27;).addEventListener(&#x27;input&#x27;,function(e){if(e.target.id===&#x27;h-search&#x27;)renderHist(e.target.value)});
 $(&#x27;#tab-so&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;[data-hid]&#x27;);if(b)openHist(b.dataset.hid)});
 $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;change&#x27;,function(e){
   var t=e.target,k=t.dataset.s;
+  if(t.id===&#x27;s-qrimg&#x27;){var qf=t.files&amp;&amp;t.files[0];t.value=&#x27;&#x27;;if(qf)qrFromImage(qf);return}
   if(t.id===&#x27;bk-file&#x27;){var f=t.files&amp;&amp;t.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){restoreData(String(rd.result||&#x27;&#x27;))};rd.onerror=function(){toast(&#x27;Không đọc được file&#x27;)};rd.readAsText(f);t.value=&#x27;&#x27;;return}
   if(!k)return;
   if(t.type===&#x27;checkbox&#x27;)cfg[k]=t.checked;
   else if(k===&#x27;defCon&#x27;){cfg.defCon=Math.min(parseMoney(t.value),9999);K.c=cfg.defCon?String(cfg.defCon):&#x27;&#x27;}
   else if(k===&#x27;autoDec&#x27;||k===&#x27;roundKg&#x27;||k===&#x27;roundMoney&#x27;){cfg[k]=parseInt(t.value,10)||0;if(k===&#x27;autoDec&#x27;)K.w=&#x27;&#x27;}
+  else if(k===&#x27;bankBin&#x27;){cfg.bankBin=/^\d{6}$/.test(t.value)?t.value:&#x27;&#x27;;cfg.bankSvc=&#x27;QRIBFTTA&#x27;}
+  else if(k===&#x27;bankAcc&#x27;){cfg.bankAcc=accClean(t.value);t.value=cfg.bankAcc;cfg.bankSvc=&#x27;QRIBFTTA&#x27;}
+  else if(k===&#x27;bankHolder&#x27;){cfg.bankHolder=nameClean(t.value);t.value=cfg.bankHolder}
+  else if(k===&#x27;ckNote&#x27;){cfg.ckNote=ckClean(t.value,20);t.value=cfg.ckNote}
   else cfg[k]=t.value;
-  saveCfg();if(k===&#x27;theme&#x27;)applyTheme();if(k===&#x27;wake&#x27;){if(cfg.wake)wake();else unwake()}
+  if((k===&#x27;bankBin&#x27;||k===&#x27;bankAcc&#x27;)&amp;&amp;bankOK(cfg))cfg.bank=&#x27;&#x27;;
+  saveCfg();if(k===&#x27;bankBin&#x27;||k===&#x27;bankAcc&#x27;||k===&#x27;bankHolder&#x27;||k===&#x27;ckNote&#x27;){var qp=$(&#x27;#qrPrev&#x27;);if(qp)qp.innerHTML=qrPrevHTML()}if(k===&#x27;theme&#x27;)applyTheme();if(k===&#x27;wake&#x27;){if(cfg.wake)wake();else unwake()}
   if(k===&#x27;speak&#x27;){if(cfg.speak)ttsWarm();ttsPaint()}
   toast(&#x27;Đã lưu cài đặt&#x27;);
 });
 $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   var b=e.target.closest(&#x27;[data-act]&#x27;);if(!b)return;var a=b.dataset.act;
   if(a===&#x27;bt&#x27;){showTab(&#x27;can&#x27;);openBT()}
+  else if(a===&#x27;pickme&#x27;)pickContact(function(n,t){if(n)cfg.shop=n;if(t)cfg.shopPhone=t;saveCfg();renderCai();toast(&#x27;Đã lấy từ danh bạ: &#x27;+[n,t].filter(Boolean).join(&#x27; · &#x27;))});
+  else if(a===&#x27;qrbig&#x27;)openQrBig(b);
+  else if(a===&#x27;bankold&#x27;){cfg.bank=&#x27;&#x27;;saveCfg();var qp0=$(&#x27;#qrPrev&#x27;);if(qp0)qp0.innerHTML=qrPrevHTML();toast(&#x27;Đã xoá dòng tài khoản cũ&#x27;)}
   else if(a===&#x27;ttstest&#x27;){
     /* đọc thử ngay trong cú bấm (iPhone chỉ cho đọc khi có thao tác của người dùng) */
     TTS.warm=true;
