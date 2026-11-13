@@ -992,6 +992,12 @@ nav.tabs button[aria-selected=&quot;true&quot;]{color:var(--accent);border-top-c
 .list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:6px}
 .lgh{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .lgh b{color:var(--ink)}
+/* thanh mỏng có nút Xoá hết: luôn nằm yên ở đầu sổ cân, không trôi theo khi cuộn (dòng tóm tắt phía trên nó thì cuộn đi như cũ) */
+.lgh.top{position:sticky;top:0;z-index:2;background:var(--bg);align-items:center;flex-wrap:nowrap;padding-bottom:2px}
+.lgh.top&gt;span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clr{position:relative;flex:none;margin-left:auto;border:1px solid var(--accent);color:var(--accent);background:var(--surface);border-radius:8px;padding:3px 10px;font-weight:700;font-size:12px;white-space:nowrap}
+.clr::after{content:&quot;&quot;;position:absolute;top:-10px;bottom:-10px;left:-8px;right:-8px}
+.undo{margin-top:12px;border:1px dashed var(--ok);color:var(--ok);background:none;border-radius:10px;padding:10px 12px;font-weight:600;font-size:13px;width:100%}
 /* sổ cân: mỗi cột 5 mã, dưới cột là cộng cột */
 .lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px}
 .lc{border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow:hidden;display:flex;flex-direction:column;min-width:0}
@@ -1017,9 +1023,11 @@ nav.tabs button[aria-selected=&quot;true&quot;]{color:var(--accent);border-top-c
 .scale.steady #fW[aria-pressed=&quot;true&quot;]{border-color:var(--scale-ok)}
 .scale .side button{min-width:92px;height:100%}
 .scale .mid{font:600 24px/1.1 var(--f-num);font-variant-numeric:tabular-nums;display:block}
-.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:none}
-.k{height:46px;border:1px solid var(--line);background:var(--key);border-radius:10px;font:600 23px var(--f-num)}
+.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:none;touch-action:none}
+.k{height:46px;border:1px solid var(--line);background:var(--key);border-radius:10px;font:600 23px var(--f-num);touch-action:none}
 .k:active{transform:scale(.97)}
+.k.on{transform:scale(.95);background:var(--line)}
+.k.add.on{background:var(--accent);filter:brightness(.8)}
 .k.fn{background:var(--keyfn);font-size:15px;font-family:var(--f-body)}
 .k.add{grid-row:span 2;height:auto;background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font:700 15px var(--f-body);line-height:1.2}
 .k.add b{display:block;font:700 30px/1 var(--f-num)}
@@ -1051,7 +1059,22 @@ nav.tabs button[aria-selected=&quot;true&quot;]{color:var(--accent);border-top-c
 .btn.danger{color:var(--accent)}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
 .btns .btn{flex:1 1 140px}
+a.btn{text-decoration:none;text-align:center;color:inherit}
+.btn[disabled]{opacity:.5}
 .hint{font-size:12px;color:var(--muted)}
+/* ảnh phiếu để chia sẻ + bảng chọn cách in */
+.imgw{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:auto;overscroll-behavior:contain;max-height:52vh;flex:none}
+.imgw img{display:block;width:100%;height:auto}
+.imgw .empty{color:#444}
+.pm{display:block;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;background:var(--bg)}
+.pm b{display:block;font-size:15px}
+.pm span{display:block;font-size:12px;color:var(--muted)}
+.pm.a{border-color:var(--corn)}
+.pm.b{border-color:var(--ok)}
+.pm.c{border-color:#5B6BD6}
+.seg{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.seg button{border:1px solid var(--line);border-radius:8px;padding:6px 14px;background:var(--surface);color:var(--ink);font-weight:600}
+.seg button[aria-pressed=&quot;true&quot;]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .debt,.dedbtn{border:1px dashed var(--warn);color:var(--warn);background:none;border-radius:8px;padding:8px 10px;font-weight:600;font-size:13px;text-align:left;width:100%}
 .dedbtn{border-color:var(--corn);color:var(--corn)}
 
@@ -1107,7 +1130,7 @@ details ul{padding-left:18px;margin:6px 0}
 #modal .box{background:var(--surface);color:var(--ink);border-radius:14px;padding:16px;width:100%;max-width:520px;max-height:92%;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px}
 #modal h3{margin:0;font-size:16px}
 #toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:999px;font-size:14px;font-weight:600;z-index:60;max-width:90%;text-align:center;pointer-events:none}
-@media (prefers-reduced-motion:reduce){.k:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.k:active,.k.on{transform:none}}
 @media print{
   body{overflow:visible;background:#fff} html,body,#app,main{height:auto}
   header.top,nav.tabs,.noprint,#toast,#modal{display:none!important}
@@ -1346,10 +1369,28 @@ AutoCap.prototype.feed=function(w,t,flag){
   if(this.steady&amp;&amp;this.armed){this.armed=false;return w}
   return null;
 };
+/* câu đọc to cho một số cân: viết hẳn ra chữ để máy nào đọc cũng giống nhau, ngắn gọn cho đọc nhanh. 48600 g -&gt; &quot;bốn mươi tám phẩy sáu&quot; */
+function kgSay(g){
+  var v=Math.round(Math.abs(g)/10),i=Math.floor(v/100),f=v%100,s=docSo(i);
+  if(f)s+=&#x27; phẩy &#x27;+(f%10===0?docSo(f/10):(f&lt;10?&#x27;không &#x27;+docSo(f):docSo(f)));
+  return s;
+}
+/* lệnh in ảnh cho máy in nhiệt (ESC/POS): y hệt cách app Sổ Nợ đang in — khởi tạo, căn giữa, chia ảnh thành từng dải 128 dòng (GS v 0), đẩy 3 dòng giấy */
+function rasterCmd(mono,width,height){
+  var bpr=Math.ceil(width/8),BAND=128,nb=Math.ceil(height/BAND),out=new Uint8Array(5+nb*8+bpr*height+3),p=0;
+  out[p++]=0x1B;out[p++]=0x40;out[p++]=0x1B;out[p++]=0x61;out[p++]=0x01;
+  for(var y0=0;y0&lt;height;y0+=BAND){
+    var bh=(height-y0&lt;BAND)?(height-y0):BAND;
+    out[p++]=0x1D;out[p++]=0x76;out[p++]=0x30;out[p++]=0x00;out[p++]=bpr&amp;0xff;out[p++]=(bpr&gt;&gt;8)&amp;0xff;out[p++]=bh&amp;0xff;out[p++]=(bh&gt;&gt;8)&amp;0xff;
+    for(var y=y0;y&lt;y0+bh;y++){var row=y*width;
+      for(var bx=0;bx&lt;bpr;bx++){var b=0,x=bx*8;for(var k=0;k&lt;8;k++){if(x+k&lt;width&amp;&amp;mono[row+x+k])b|=(0x80&gt;&gt;k)}out[p++]=b}}
+  }
+  out[p++]=0x0A;out[p++]=0x0A;out[p++]=0x0A;return out;
+}
 /* ===CORE-END=== */
 
 /* ---------- môi trường ---------- */
-var CG_VER=&#x27;2026-11-13-CG2&#x27;;
+var CG_VER=&#x27;2026-11-13-CG3&#x27;;
 /* nhận biết đang nằm trong app quy trình bằng chính thẻ khung chứa — không phụ thuộc trang chính đã chạy xong script hay chưa */
 var EMBED=false;try{EMBED=window.parent!==window&amp;&amp;!!window.frameElement&amp;&amp;window.frameElement.id===&#x27;canGaFrame&#x27;}catch(e){EMBED=false}
 var SA=!!window.CANGA_STANDALONE||EMBED, mem={}, RAW={}, FAIL={};
@@ -1362,8 +1403,8 @@ function lsRaw(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsGet(k){var r=lsRaw(k);if(r){try{var v=JSON.parse(r);RAW[k]=r;return v}catch(e){}}return mem[k]===undefined?null:mem[k]}
 function lsSet(k,v){mem[k]=v;var s=JSON.stringify(v);try{localStorage.setItem(k,s);RAW[k]=s;delete FAIL[k]}catch(e){FAIL[k]=1}paintFail()}
 function paintFail(){var el=document.getElementById(&#x27;failBar&#x27;);if(!el)return;var bad=false;for(var k in FAIL)bad=true;el.hidden=!bad}
-var KS=&#x27;canga_v1_state&#x27;,KC=&#x27;canga_v1_cfg&#x27;,KH=&#x27;canga_v1_hist&#x27;;
-var CFG0={shop:&#x27;&#x27;,shopPhone:&#x27;&#x27;,bank:&#x27;&#x27;,defCon:0,autoDec:0,roundKg:10,roundMoney:1,speak:false,wake:true,lastPrice:0,lastDed:null,theme:&#x27;&#x27;,btAuto:true,btMin:1000,btHold:1200,btBaud:9600};
+var KS=&#x27;canga_v1_state&#x27;,KC=&#x27;canga_v1_cfg&#x27;,KH=&#x27;canga_v1_hist&#x27;,KT=&#x27;canga_v1_trash&#x27;;
+var CFG0={shop:&#x27;&#x27;,shopPhone:&#x27;&#x27;,bank:&#x27;&#x27;,defCon:0,autoDec:0,roundKg:10,roundMoney:1,speak:false,speakRate:1.4,wake:true,lastPrice:0,lastDed:null,theme:&#x27;&#x27;,btAuto:true,btMin:1000,btHold:1200,btBaud:9600,prPaper:&#x27;&#x27;,prSize:&#x27;&#x27;,prName:&#x27;&#x27;};
 var cfg=Object.assign({},CFG0,lsGet(KC)||{});
 if(!cfg.theme)cfg.theme=EMBED?&#x27;dark&#x27;:&#x27;auto&#x27;;
 function applyTheme(){var r=document.documentElement;if(cfg.theme===&#x27;light&#x27;||cfg.theme===&#x27;dark&#x27;)r.setAttribute(&#x27;data-theme&#x27;,cfg.theme);else if(SA)r.removeAttribute(&#x27;data-theme&#x27;)}
@@ -1414,7 +1455,88 @@ function copyText(txt,okMsg){
   function fallback(){openModal(&#x27;&lt;h3&gt;Chạm giữ vào ô dưới để sao chép&lt;/h3&gt;&lt;div class=&quot;f&quot;&gt;&lt;textarea id=&quot;cpArea&quot; rows=&quot;10&quot; readonly&gt;&lt;/textarea&gt;&lt;/div&gt;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn&quot; data-m=&quot;close&quot;&gt;Đóng&lt;/button&gt;&lt;/div&gt;&#x27;);var a=$(&#x27;#cpArea&#x27;);a.value=txt;a.focus();a.select()}
   try{if(navigator.clipboard&amp;&amp;navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast(okMsg||&#x27;Đã sao chép&#x27;)},fallback)}else fallback()}catch(e){fallback()}
 }
-function speak(t){if(!cfg.speak)return;try{var u=new SpeechSynthesisUtterance(t);u.lang=&#x27;vi-VN&#x27;;u.rate=1.1;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+/* ---------- ĐỌC TO SỐ KG ----------
+   Trình duyệt mượn giọng đọc của điện thoại: máy chưa có giọng tiếng Việt, hoặc mở app bên trong Zalo / Facebook, thì không đọc được.
+   Cách làm: tự tìm giọng tiếng Việt của máy; đọc SAU khi màn hình đã vẽ xong số mới (bộ đọc có khựng cũng không làm chậm bàn phím);
+   chỉ ngắt câu cũ khi nó còn đang đọc; theo dõi máy có đọc thật không — không đọc được thì kêu “bíp” thay và ghi rõ lý do ở thẻ Cài đặt. */
+var IOS=false;try{IOS=/iP(hone|ad|od)/.test(navigator.userAgent||&#x27;&#x27;)||(navigator.platform===&#x27;MacIntel&#x27;&amp;&amp;navigator.maxTouchPoints&gt;1)}catch(e){}
+var TTS={has:false,vi:null,n:-1,state:&#x27;&#x27;,err:&#x27;&#x27;,fail:0,seq:0,keep:null,warm:false,testing:0};
+try{TTS.has=!!(window.speechSynthesis&amp;&amp;window.SpeechSynthesisUtterance)}catch(e){}
+function ttsScan(){
+  if(!TTS.has)return;
+  try{var vs=speechSynthesis.getVoices()||[],best=null,bs=-1;
+    for(var i=0;i&lt;vs.length;i++){var v=vs[i],l=String(v.lang||&#x27;&#x27;).toLowerCase().replace(&#x27;_&#x27;,&#x27;-&#x27;);
+      if(l!==&#x27;vi&#x27;&amp;&amp;l.indexOf(&#x27;vi-&#x27;)!==0)continue;
+      var sc=(v.localService?2:0)+(v.default?1:0)+(l===&#x27;vi-vn&#x27;?1:0);if(sc&gt;bs){bs=sc;best=v}}
+    TTS.n=vs.length;TTS.vi=best}catch(e){}
+}
+/* chắc chắn không đọc được: trình duyệt không có bộ đọc, hoặc máy có danh sách giọng mà không có giọng tiếng Việt nào */
+function ttsDead(){return !TTS.has||(TTS.n&gt;0&amp;&amp;!TTS.vi)}
+function ttsRate(){var r=parseFloat(cfg.speakRate);return isFinite(r)&amp;&amp;r&gt;=0.5&amp;&amp;r&lt;=3?r:1.4}
+function ttsSay(t,test){
+  ttsScan();
+  if(ttsDead()){TTS.state=&#x27;novi&#x27;;TTS.testing=0;ttsPaint();return}
+  var ss=speechSynthesis,u=new SpeechSynthesisUtterance(t),id=++TTS.seq,t0=Date.now(),started=false,fin=false,wd=0;
+  u.lang=&#x27;vi-VN&#x27;;if(TTS.vi){try{u.voice=TTS.vi}catch(e){}}
+  u.rate=ttsRate();u.pitch=1;u.volume=1;
+  function end(good,why){
+    if(fin)return;fin=true;clearTimeout(wd);if(TTS.testing===id)TTS.testing=0;
+    if(id!==TTS.seq&amp;&amp;!good)return;                     /* câu cũ bị câu mới ngắt ngang: không tính là lỗi */
+    if(good){TTS.state=&#x27;ok&#x27;;TTS.err=&#x27;&#x27;;TTS.fail=0}else{TTS.state=&#x27;bad&#x27;;TTS.err=why||&#x27;&#x27;;TTS.fail++}
+    ttsPaint();
+  }
+  u.onstart=function(){started=true;end(true)};
+  u.onend=function(){if(!started)end(Date.now()-t0&gt;=300,&#x27;end&#x27;)};
+  u.onerror=function(e){var c=e&amp;&amp;e.error;if(c===&#x27;interrupted&#x27;||c===&#x27;canceled&#x27;){fin=true;clearTimeout(wd);if(TTS.testing===id)TTS.testing=0;return}end(false,c||&#x27;error&#x27;)};
+  TTS.keep=u;TTS.testing=test?id:0;
+  function go(){
+    if(id!==TTS.seq)return;
+    try{if(ss.paused)ss.resume()}catch(e){}
+    try{ss.speak(u)}catch(e){end(false,&#x27;throw&#x27;);return}
+    wd=setTimeout(function(){if(!started)end(false,&#x27;silent&#x27;)},3500);
+  }
+  var busy=false;try{busy=!!(ss.speaking||ss.pending)}catch(e){}
+  if(busy){try{ss.cancel()}catch(e){}setTimeout(go,80)}else go();
+}
+function speak(t,beeped){
+  if(!cfg.speak)return;
+  ttsScan();
+  var dead=ttsDead();
+  if((dead||TTS.fail&gt;0)&amp;&amp;!beeped)beep();               /* máy không đọc được: kêu “bíp” thay cho đọc */
+  if(dead){TTS.state=&#x27;novi&#x27;;return}
+  var done=false,go=function(){if(done)return;done=true;try{ttsSay(t)}catch(e){TTS.state=&#x27;bad&#x27;;TTS.fail++}};
+  try{requestAnimationFrame(function(){setTimeout(go,0)})}catch(e){}
+  setTimeout(go,160);
+}
+/* iPhone chỉ cho đọc sau khi người dùng đã chạm màn hình: &quot;mở khoá&quot; bộ đọc ngay ở lần chạm đầu tiên */
+function ttsWarm(){
+  if(TTS.warm||!TTS.has||!cfg.speak)return;TTS.warm=true;ttsScan();
+  if(IOS){try{var u=new SpeechSynthesisUtterance(&#x27;&#x27;);u.volume=0;speechSynthesis.speak(u)}catch(e){}}
+}
+if(TTS.has){ttsScan();
+  try{speechSynthesis.addEventListener(&#x27;voiceschanged&#x27;,function(){ttsScan();ttsPaint()})}catch(e){try{speechSynthesis.onvoiceschanged=function(){ttsScan();ttsPaint()}}catch(e2){}}
+  [&#x27;pointerup&#x27;,&#x27;touchend&#x27;,&#x27;mouseup&#x27;,&#x27;click&#x27;,&#x27;keydown&#x27;].forEach(function(ev){document.addEventListener(ev,ttsWarm,true)})}
+/* đang mở bên trong ứng dụng khác (Zalo, Facebook…)? Trình duyệt con của các ứng dụng này thiếu bộ đọc, Bluetooth, in, chia sẻ ảnh */
+function inApp(){
+  var u=&#x27;&#x27;;try{u=navigator.userAgent||&#x27;&#x27;}catch(e){}
+  if(/Zalo/i.test(u))return&#x27;Zalo&#x27;;if(/FBAN|FBAV|FB_IAB|FB4A|Messenger/i.test(u))return&#x27;Facebook&#x27;;if(/Instagram/i.test(u))return&#x27;Instagram&#x27;;
+  if(/TikTok|musical_ly|Bytedance/i.test(u))return&#x27;TikTok&#x27;;if(/\bLine\//i.test(u))return&#x27;Line&#x27;;if(/; wv\)/.test(u))return&#x27;một ứng dụng khác&#x27;;return&#x27;&#x27;;
+}
+function openHint(){var a=inApp();return a?&#x27; Bạn đang mở app bên trong &#x27;+a+&#x27;: bấm dấu ⋮ hoặc ··· ở góc màn hình rồi chọn “Mở bằng trình duyệt” (Chrome).&#x27;:&#x27;&#x27;}
+function ttsText(){
+  if(!TTS.has)return&#x27;⚠ Trình duyệt này không có bộ đọc nên không đọc to được — app kêu “bíp” thay cho đọc.&#x27;+(openHint()||&#x27; Hãy mở app bằng Chrome (máy Android) hoặc Safari (iPhone).&#x27;);
+  ttsScan();
+  if(TTS.n&gt;0&amp;&amp;!TTS.vi)return&#x27;⚠ Máy này chưa có giọng đọc tiếng Việt (đang có &#x27;+TTS.n+&#x27; giọng tiếng khác) nên không đọc được — app kêu “bíp” thay cho đọc. Cách cài giọng: xem mục “Đọc to số kg” trong Hướng dẫn bên dưới; cài xong bấm “Thử đọc”.&#x27;;
+  if(TTS.testing&amp;&amp;TTS.testing===TTS.seq)return&#x27;Đang thử đọc…&#x27;;
+  if(TTS.state===&#x27;bad&#x27;){
+    if(TTS.err===&#x27;silent&#x27;||TTS.err===&#x27;end&#x27;)return&#x27;⚠ Máy không báo là đã đọc. Nếu bạn KHÔNG nghe thấy tiếng: tăng âm lượng “Nhạc / Phương tiện” của máy, kiểm tra giọng đọc tiếng Việt đã tải về chưa (xem mục “Đọc to số kg” trong Hướng dẫn bên dưới), rồi bấm “Thử đọc” lần nữa. Trong lúc chưa đọc được, app kêu “bíp” thay.&#x27;+openHint();
+    return&#x27;⚠ Máy không đọc được (lỗi: &#x27;+TTS.err+&#x27;). Thường do chưa tải giọng đọc tiếng Việt hoặc đang mất mạng — xem mục “Đọc to số kg” trong Hướng dẫn bên dưới. Trong lúc chưa đọc được, app kêu “bíp” thay.&#x27;+openHint();
+  }
+  var v=TTS.vi?&#x27; Giọng đọc: &#x27;+TTS.vi.name+&#x27;.&#x27;:&#x27;&#x27;;
+  if(TTS.state===&#x27;ok&#x27;)return&#x27;✓ Máy này đọc được.&#x27;+v;
+  return(TTS.vi?&#x27;Máy có giọng đọc tiếng Việt.&#x27;+v:&#x27;Chưa biết máy này có đọc được không.&#x27;)+&#x27; Bấm “Thử đọc” để nghe thử.&#x27;;
+}
+function ttsPaint(){var el=document.getElementById(&#x27;ttsStat&#x27;);if(el)el.textContent=ttsText()}
 var actx=null;
 function beep(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();var o=actx.createOscillator(),g=actx.createGain();o.frequency.value=1250;g.gain.value=.18;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+.13)}catch(e){}}
 /* giữ sáng màn hình: CHỈ khi khung cân đang mở; đóng khung cân là nhả ngay để không ảnh hưởng app quy trình */
@@ -1604,7 +1726,7 @@ function addEntry(wAuto,auto,force){
   var ls=$(&#x27;#list&#x27;);ls.scrollTop=ls.scrollHeight;
   try{if(navigator.vibrate)navigator.vibrate(25)}catch(er){}
   if(auto||fromLive)beep();
-  speak(fmtKg(w).replace(&#x27;,&#x27;,&#x27; phẩy &#x27;)+&#x27; ký&#x27;);
+  speak(kgSay(w),auto||fromLive);
 }
 function undoLast(){
   if(state.sample||!state.entries.length){toast(&#x27;Chưa có mã cân nào&#x27;);return}
@@ -1639,12 +1761,19 @@ function renderCan(){
   $(&#x27;#chips&#x27;).innerHTML=ch;
   var hs=state.entries.filter(function(e){return e.gid===K.gid&amp;&amp;e.kind!==&#x27;b&#x27;}),bs=state.entries.filter(function(e){return e.gid===K.gid&amp;&amp;e.kind===&#x27;b&#x27;});
   var fl=&#x27;&#x27;;if(state.flock&amp;&amp;state.flock.count){var rem=state.flock.count-c.con;fl=&#x27; · đàn &#x27;+fmtInt(state.flock.count)+&#x27; con, &#x27;+(rem&gt;=0?&#x27;còn &#x27;+fmtInt(rem):&#x27;cân dư &#x27;+fmtInt(-rem))}
-  var h=&#x27;&#x27;;
+  /* nút Xoá hết nằm trên thanh mỏng ở đầu sổ cân, lúc nào cũng thấy (kể cả khi sổ trống hoặc đã cuộn xuống cuối) */
+  var h=&#x27;&#x27;,clr=&#x27;&lt;button class=&quot;clr&quot; data-act=&quot;clearall&quot;&gt;🗑 Xoá hết&lt;/button&gt;&#x27;;
   if(hs.length||bs.length){
-    h+=&#x27;&lt;div class=&quot;lgh&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27;+esc(g.name)+&#x27;&lt;/b&gt; · &#x27;+cg.nMa+&#x27; mã&#x27;+(cg.con?&#x27; · &#x27;+fmtInt(cg.con)+&#x27; con · &#x27;+fmtKg(cg.avg)+&#x27; kg/con&#x27;+(cg.nNoCon?&#x27; · ⚠ &#x27;+cg.nNoCon+&#x27; mã chưa có số con&#x27;:&#x27;&#x27;):&#x27;&#x27;)+esc(fl)+&#x27;&lt;/span&gt;&lt;span&gt;chạm vào số để sửa&lt;/span&gt;&lt;/div&gt;&#x27;;
+    h+=&#x27;&lt;div class=&quot;lgh&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27;+esc(g.name)+&#x27;&lt;/b&gt; · &#x27;+cg.nMa+&#x27; mã&#x27;+(cg.con?&#x27; · &#x27;+fmtInt(cg.con)+&#x27; con · &#x27;+fmtKg(cg.avg)+&#x27; kg/con&#x27;+(cg.nNoCon?&#x27; · ⚠ &#x27;+cg.nNoCon+&#x27; mã chưa có số con&#x27;:&#x27;&#x27;):&#x27;&#x27;)+esc(fl)+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;+
+       &#x27;&lt;div class=&quot;lgh top&quot;&gt;&lt;span&gt;chạm vào số để sửa&lt;/span&gt;&#x27;+clr+&#x27;&lt;/div&gt;&#x27;;
     if(hs.length)h+=ledgerHTML(hs,{btn:true,flags:out,last:K.lastId});
     if(bs.length)h+=&#x27;&lt;div class=&quot;lgh&quot;&gt;&lt;span&gt;&lt;b&gt;Bì rỗng đã cân&lt;/b&gt; · &#x27;+bs.length+&#x27; lần = &#x27;+fmtKg(cg.biSum)+&#x27; kg&#x27;+(g.tare.mode!==&#x27;can&#x27;?&#x27; (đang KHÔNG tính vì chọn cách trừ bì khác)&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;+ledgerHTML(bs,{btn:true,bi:true,last:K.lastId});
-  }else h=&#x27;&lt;div class=&quot;empty&quot;&gt;Bấm số kg rồi bấm &lt;b&gt;CỘNG MÃ&lt;/b&gt;. Sổ cân tự chia cột, mỗi cột 5 mã và có cộng cột để đối chiếu với lái.&lt;br&gt;Bấm nút &lt;b&gt;&#x27;+esc(dedShort(g,cg))+&#x27;&lt;/b&gt; để chọn cách trừ bì.&lt;/div&gt;&#x27;;
+  }else{
+    var tr=state.entries.length?null:trashGet(),trc=tr?compute(tr.state,cfg):null;
+    h=&#x27;&lt;div class=&quot;lgh top&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27;+esc(g.name)+&#x27;&lt;/b&gt; · chưa có mã cân&lt;/span&gt;&#x27;+clr+&#x27;&lt;/div&gt;&#x27;+
+      &#x27;&lt;div class=&quot;empty&quot;&gt;Bấm số kg rồi bấm &lt;b&gt;CỘNG MÃ&lt;/b&gt;. Sổ cân tự chia cột, mỗi cột 5 mã và có cộng cột để đối chiếu với lái.&lt;br&gt;Bấm nút &lt;b&gt;&#x27;+esc(dedShort(g,cg))+&#x27;&lt;/b&gt; để chọn cách trừ bì.&#x27;+
+      (tr?&#x27;&lt;button class=&quot;undo&quot; data-act=&quot;untrash&quot;&gt;↩ Lấy lại phiếu vừa xoá: &#x27;+trc.nMa+&#x27; mã · &#x27;+fmtKg(trc.gross)+&#x27; kg&#x27;+(tr.state.customer.name?&#x27; · &#x27;+esc(tr.state.customer.name):&#x27;&#x27;)+&#x27; (xoá lúc &#x27;+esc(fmtDate(tr.at).slice(11))+&#x27;)&lt;/button&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;;
+  }
   $(&#x27;#list&#x27;).innerHTML=h;
   $(&#x27;#biBar&#x27;).hidden=K.kind!==&#x27;b&#x27;;
   $(&#x27;#pad&#x27;).hidden=K.hidePad;
@@ -1802,7 +1931,7 @@ function billHTML(st,c){
 function renderPhieu(){
   var c=compute(state,cfg);
   var h=billHTML(state,c)+&#x27;&lt;div class=&quot;btns noprint&quot;&gt;&lt;button class=&quot;btn pri&quot; data-act=&quot;save&quot;&gt;Lưu phiếu vào sổ&lt;/button&gt;&lt;button class=&quot;btn dark&quot; data-act=&quot;copy&quot;&gt;Sao chép gửi Zalo&lt;/button&gt;&#x27;+
-    (SA?&#x27;&lt;button class=&quot;btn&quot; data-act=&quot;share&quot;&gt;Chia sẻ&lt;/button&gt;&lt;button class=&quot;btn&quot; data-act=&quot;print&quot;&gt;In phiếu&lt;/button&gt;&#x27;:&#x27;&#x27;)+
+    &#x27;&lt;button class=&quot;btn&quot; data-act=&quot;shimg&quot;&gt;&#x27;+(SA?&#x27;📷 Chia sẻ ảnh phiếu&#x27;:&#x27;📷 Xem ảnh phiếu&#x27;)+&#x27;&lt;/button&gt;&#x27;+(SA?&#x27;&lt;button class=&quot;btn&quot; data-act=&quot;print&quot;&gt;🖨 In phiếu&lt;/button&gt;&#x27;:&#x27;&#x27;)+
     &#x27;&lt;button class=&quot;btn&quot; data-act=&quot;new&quot;&gt;Phiếu mới&lt;/button&gt;&lt;/div&gt;&#x27;+(state.sample?&#x27;&lt;div class=&quot;hint noprint&quot;&gt;Đây là phiếu mẫu.&lt;/div&gt;&#x27;:&#x27;&#x27;);
   $(&#x27;#tab-phieu&#x27;).innerHTML=h;
 }
@@ -1824,6 +1953,398 @@ function resetK(){K.w=&#x27;&#x27;;K.kind=&#x27;h&#x27;;K.field=&#x27;w&#x27;;K.
 function newBill(){
   function go(){state=newState();resetK();saveState();showTab(&#x27;can&#x27;)}
   if(!state.sample&amp;&amp;state.dirty&amp;&amp;state.entries.length)confirmBox(&#x27;Phiếu đang cân chưa lưu. Bỏ và mở phiếu mới?&#x27;,&#x27;Bỏ, mở phiếu mới&#x27;,go);else go();
+}
+
+/* ---------- XOÁ HẾT để cân đợt mới ----------
+   Xoá phiếu ĐANG CÂN: mọi mã cân, bì đã cân, tên khách, tiền cọc / tiền trả / nợ cũ. Giữ lại giá bán, cách trừ bì và mọi phiếu đã lưu trong Sổ.
+   Phiếu chưa lưu mà bị xoá thì còn giữ tạm 24 giờ để bấm “Lấy lại phiếu vừa xoá” nếu lỡ tay. */
+function inSo(id){return hist.some(function(h){return h.id===id})}
+function billBlank(){var s=state,cu=s.customer;return !s.entries.length&amp;&amp;!cu.name&amp;&amp;!cu.phone&amp;&amp;!cu.note&amp;&amp;!s.fee&amp;&amp;!s.deposit&amp;&amp;!s.oldDebt&amp;&amp;!s.paid&amp;&amp;!s.costPrice&amp;&amp;!s.flock}
+function trashGet(){
+  var t=FAIL[KT]?mem[KT]:lsGet(KT);
+  if(!t||!validState(t.state)||!t.state.entries.length||!(Date.now()-(t.at||0)&lt;864e5))return null;
+  return t;
+}
+function askClearAll(){
+  if(state.sample){doClearAll(false);return}
+  if(billBlank()){K.w=&#x27;&#x27;;K.kind=&#x27;h&#x27;;K.field=&#x27;w&#x27;;renderCan();toast(&#x27;Phiếu đang trống — sẵn sàng cân đợt mới&#x27;);return}
+  syncHist();
+  var c=compute(state,cfg),nB=state.entries.filter(function(e){return e.kind===&#x27;b&#x27;}).length,what=[];
+  if(c.nMa)what.push(&#x27;&lt;b&gt;&#x27;+c.nMa+&#x27; mã cân&lt;/b&gt; (&#x27;+fmtKg(c.gross)+&#x27; kg)&#x27;);
+  if(nB)what.push(nB+&#x27; lần cân bì&#x27;);
+  if(state.customer.name)what.push(&#x27;khách &lt;b&gt;&#x27;+esc(state.customer.name)+&#x27;&lt;/b&gt;&#x27;);
+  what.push(&#x27;tiền cọc, tiền trả, nợ cũ của phiếu này&#x27;);
+  var has=state.entries.length&gt;0,unsaved=has&amp;&amp;(state.dirty||!inSo(state.id));
+  openModal(&#x27;&lt;h3&gt;Xoá hết để cân đợt mới?&lt;/h3&gt;&#x27;+
+    &#x27;&lt;div class=&quot;lines&quot;&gt;&lt;div&gt;Sẽ xoá: &#x27;+what.join(&#x27;, &#x27;)+&#x27;.&lt;/div&gt;&lt;div&gt;Giữ lại: giá bán, cách trừ bì và các phiếu đã lưu trong Sổ.&lt;/div&gt;&#x27;+
+    (unsaved?&#x27;&lt;div style=&quot;color:var(--warn);font-weight:700&quot;&gt;Phiếu này CHƯA lưu vào Sổ.&lt;/div&gt;&#x27;:(has?&#x27;&lt;div style=&quot;color:var(--ok);font-weight:600&quot;&gt;Phiếu này đã lưu trong Sổ.&lt;/div&gt;&#x27;:&#x27;&#x27;))+&#x27;&lt;/div&gt;&#x27;+
+    &#x27;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn&quot; data-m=&quot;close&quot;&gt;Không xoá&lt;/button&gt;&#x27;+
+    (unsaved?&#x27;&lt;button class=&quot;btn pri&quot; data-m=&quot;clrsave&quot;&gt;Lưu vào Sổ rồi xoá&lt;/button&gt;&lt;button class=&quot;btn danger&quot; data-m=&quot;clrgo&quot;&gt;Xoá, không lưu&lt;/button&gt;&#x27;:&#x27;&lt;button class=&quot;btn pri&quot; data-m=&quot;clrgo&quot;&gt;Xoá hết&lt;/button&gt;&#x27;)+&#x27;&lt;/div&gt;&#x27;,&#x27;clear&#x27;);
+}
+function doClearAll(saveFirst){
+  var was=state,keep=false,sample=!!was.sample;
+  if(saveFirst){if(!saveBill())return}                          /* lưu không được thì KHÔNG xoá */
+  else if(!sample&amp;&amp;was.entries.length&amp;&amp;(was.dirty||!inSo(was.id)))keep=true;
+  if(!sample){
+    var g=was.groups[0];if(g.price)cfg.lastPrice=g.price;
+    cfg.lastDed={tare:{mode:g.tare.mode,perMa:g.tare.perMa,kgLong:g.tare.kgLong},haoPct:g.haoPct,truCon:g.truCon};saveCfg();
+    if(was.entries.length)lsSet(KT,keep?{at:Date.now(),state:JSON.parse(JSON.stringify(was))}:null);   /* phiếu vừa xoá không có mã nào thì không đụng tới phiếu đang giữ tạm trước đó */
+  }
+  state=newState();resetK();BT.oddW=null;saveState();
+  closeModal();showTab(&#x27;can&#x27;);
+  toast(sample?&#x27;Đã xoá phiếu mẫu. Sẵn sàng cân.&#x27;:(saveFirst?&#x27;Đã lưu vào Sổ và xoá hết. Sẵn sàng cân đợt mới.&#x27;:&#x27;Đã xoá hết. Sẵn sàng cân đợt mới.&#x27;));
+}
+function trashRestore(){
+  var t=trashGet();if(!t)return;
+  if(state.entries.length&amp;&amp;!state.sample){toast(&#x27;Phiếu đang cân đã có mã — xoá các mã đó trước rồi mới lấy lại được&#x27;);return}
+  state=migrate(JSON.parse(JSON.stringify(t.state)));state.sample=false;state.dirty=true;
+  lsSet(KT,null);resetK();saveState();showTab(&#x27;can&#x27;);toast(&#x27;Đã lấy lại phiếu vừa xoá&#x27;);
+}
+
+/* ---------- ẢNH PHIẾU ----------
+   Vẽ lại ĐÚNG phiếu đang xem lên một tấm ảnh: lấy chính khung phiếu (billHTML) rồi vẽ từng phần theo thứ tự,
+   nên ảnh luôn có đủ và đúng mọi dòng như phiếu trên màn hình. Dùng cho “Chia sẻ ảnh phiếu” và in máy in nhiệt Bluetooth.
+   (Web không được tự chụp màn hình; cách “chụp qua SVG” thì hỏng trên iPhone — nên phải tự vẽ.) */
+var FB=&#x27;&quot;Be Vietnam Pro&quot;,system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,Arial,sans-serif&#x27;,FNUM=&#x27;&quot;Chakra Petch&quot;,&#x27;+FB;
+function fontsThen(cb){
+  var fin=false,t=setTimeout(done,1500);function done(){if(fin)return;fin=true;clearTimeout(t);cb()}
+  try{var fs=document.fonts;if(!fs||!fs.load){done();return}
+    Promise.all([&#x27;400 14px &quot;Be Vietnam Pro&quot;&#x27;,&#x27;500 14px &quot;Be Vietnam Pro&quot;&#x27;,&#x27;600 14px &quot;Be Vietnam Pro&quot;&#x27;,&#x27;700 14px &quot;Be Vietnam Pro&quot;&#x27;,&#x27;600 14px &quot;Chakra Petch&quot;&#x27;,&#x27;700 14px &quot;Chakra Petch&quot;&#x27;].map(function(f){return fs.load(f,&#x27;Phiếu cân gà 0123456789 đ&#x27;)})).then(done,done)}catch(e){done()}
+}
+/* L = bề ngang phiếu (đơn vị như điểm ảnh trên màn hình) · mono = bản đen trắng cho máy in nhiệt */
+function billLayout(st,c,L,mono){
+  var padX=mono?3:14,padY=mono?6:16,x0=padX,iw=L-2*padX,gap=mono?4:6;
+  var C=mono?{ink:&#x27;#000&#x27;,mut:&#x27;#000&#x27;,line:&#x27;#000&#x27;,acc:&#x27;#000&#x27;,ok:&#x27;#000&#x27;,warn:&#x27;#000&#x27;,corn:&#x27;#000&#x27;,foot:&#x27;&#x27;}:{ink:&#x27;#111&#x27;,mut:&#x27;#444&#x27;,line:&#x27;#999&#x27;,acc:&#x27;#C4161C&#x27;,ok:&#x27;#1E7B4A&#x27;,warn:&#x27;#B45F06&#x27;,corn:&#x27;#8A5A00&#x27;,foot:&#x27;#EDEDED&#x27;};
+  var box=document.createElement(&#x27;div&#x27;);box.innerHTML=billHTML(st,c);var root=box.firstChild;
+  var m=document.createElement(&#x27;canvas&#x27;).getContext(&#x27;2d&#x27;),ops=[],texts=[],y=padY;
+  function F(wt,px,num,it){if(mono&amp;&amp;wt&lt;500)wt=500;return(it?&#x27;italic &#x27;:&#x27;&#x27;)+wt+&#x27; &#x27;+px+&#x27;px &#x27;+(num?FNUM:FB)}
+  function tw(t,f){m.font=f;return m.measureText(t).width}
+  function bl(top,lh,px){return top+lh/2+px*0.35}
+  function has(k,n){return(&#x27; &#x27;+k+&#x27; &#x27;).indexOf(&#x27; &#x27;+n+&#x27; &#x27;)&gt;=0}
+  function T(t,x,base,f,col,al){t=String(t);if(!t)return;texts.push(t);
+    ops.push(function(g,s){g.setTransform(s,0,0,s,0,0);g.font=f;g.fillStyle=col;g.textAlign=al||&#x27;left&#x27;;g.textBaseline=&#x27;alphabetic&#x27;;g.fillText(t,x,base);g.setTransform(1,0,0,1,0,0)})}
+  function HL(x,yy,w,col,dash){ops.push(function(g,s){var X=Math.round(x*s),Y=Math.round(yy*s),W=Math.round(w*s),th=Math.max(1,Math.round(s*(mono?1.25:1)));g.fillStyle=col;
+    if(dash){var d=Math.max(2,Math.round(dash*s));for(var i=0;i&lt;W;i+=2*d)g.fillRect(X+i,Y,Math.min(d,W-i),th)}else g.fillRect(X,Y,W,th)})}
+  function VL(x,yy,h,col,dash){ops.push(function(g,s){var X=Math.round(x*s),Y=Math.round(yy*s),H=Math.round(h*s),th=Math.max(1,Math.round(s*(mono?1.25:1)));g.fillStyle=col;
+    if(dash){var d=Math.max(2,Math.round(dash*s));for(var i=0;i&lt;H;i+=2*d)g.fillRect(X,Y+i,th,Math.min(d,H-i))}else g.fillRect(X,Y,th,H)})}
+  /* khung một cột sổ cân trên ảnh màu: bo góc, ô cộng cột nền xám — giống cột trên màn hình */
+  function FRAME(x,yy,w,h,fh,dash){ops.push(function(g,s){
+    var th=Math.max(1,Math.round(s)),X=Math.round(x*s)+th/2,Y=Math.round(yy*s)+th/2,W=Math.round(w*s),H=Math.round(h*s),R=Math.round(8*s),FH=Math.round(fh*s);
+    function path(){g.beginPath();g.moveTo(X+R,Y);g.arcTo(X+W,Y,X+W,Y+H,R);g.arcTo(X+W,Y+H,X,Y+H,R);g.arcTo(X,Y+H,X,Y,R);g.arcTo(X,Y,X+W,Y,R);g.closePath()}
+    g.save();path();g.clip();g.fillStyle=C.foot;g.fillRect(X-th,Y+H-FH,W+2*th,FH+th);g.restore();
+    g.save();path();g.lineWidth=th;g.strokeStyle=C.line;if(dash&amp;&amp;g.setLineDash)g.setLineDash([Math.round(3*s),Math.round(3*s)]);g.stroke();g.restore()})}
+  function wrap(t,f,maxW){
+    m.font=f;var ws=String(t).split(/\s+/).filter(Boolean),ls=[],cur=&#x27;&#x27;;
+    ws.forEach(function(w){var tr=cur?cur+&#x27; &#x27;+w:w;if(cur&amp;&amp;m.measureText(tr).width&gt;maxW){ls.push(cur);cur=w}else cur=tr});
+    if(cur)ls.push(cur);
+    var out=[];ls.forEach(function(l){while(l.length&gt;1&amp;&amp;m.measureText(l).width&gt;maxW){var k=l.length-1;while(k&gt;1&amp;&amp;m.measureText(l.slice(0,k)).width&gt;maxW)k--;out.push(l.slice(0,k));l=l.slice(k)}out.push(l)});
+    return out;
+  }
+  /* một đoạn chữ thường: tự xuống dòng trong bề ngang phiếu */
+  function P(t,px,wt,o){o=o||{};var f=F(wt,px,o.num,o.it),lh=Math.round(px*1.4);
+    wrap(t,f,iw).forEach(function(l){T(l,o.al===&#x27;center&#x27;?x0+iw/2:x0,bl(y,lh,px),f,o.col||C.ink,o.al);y+=lh})}
+  /* dòng có chữ đậm xen chữ thường (Khách: &lt;b&gt;tên&lt;/b&gt; · số điện thoại) */
+  function rich(el,px,maxW){
+    var toks=[];Array.prototype.forEach.call(el.childNodes,function(n){var f=F(n.nodeType===1&amp;&amp;n.tagName===&#x27;B&#x27;?700:400,px);
+      String(n.textContent).split(/(\s+)/).forEach(function(w){if(!w)return;if(/^\s+$/.test(w))toks.push(null);else toks.push({t:w,f:f,w:tw(w,f)})})});
+    var sp=tw(&#x27; &#x27;,F(400,px)),ls=[],cur=[],cw=0,pend=false;
+    toks.forEach(function(k){if(!k){pend=cur.length&gt;0;return}
+      var add=(pend?sp:0)+k.w;if(cur.length&amp;&amp;cw+add&gt;maxW){ls.push(cur);cur=[];cw=0;pend=false;add=k.w}
+      cur.push({t:k.t,f:k.f,x:cw+(pend?sp:0)});cw+=add;pend=false});
+    if(cur.length)ls.push(cur);return ls;
+  }
+  /* sổ cân: mỗi cột 5 mã + dòng cộng cột, xếp được bao nhiêu cột một hàng thì xếp */
+  function ledger(el,bi){
+    var cols=Array.prototype.slice.call(el.children),n=Math.max(1,Math.floor((iw+gap)/(62+gap))),cw=(iw-(n-1)*gap)/n,hH=18,rH=24,fH=26,cH=hH+5*rH+fH,col=bi?C.corn:C.ink,ds=bi?3:0;
+    for(var i=0;i&lt;cols.length;i+=n){
+      for(var j=0;j&lt;n&amp;&amp;i+j&lt;cols.length;j++){
+        var ch=cols[i+j].children,x=x0+j*(cw+gap),yy=y;
+        if(C.foot)FRAME(x,yy,cw,cH,fH,bi);
+        else{HL(x,yy,cw,C.line,ds);HL(x,yy+cH,cw,C.line,ds);VL(x,yy,cH,C.line,ds);VL(x+cw,yy,cH,C.line,ds)}
+        T(ch[0].textContent.toUpperCase(),x+cw/2,bl(yy,hH,10),F(mono?600:400,10),C.mut,&#x27;center&#x27;);
+        HL(x,yy+hH,cw,C.line,0);yy+=hH;
+        for(var r=1;r&lt;=5;r++){
+          var le=ch[r],ie=le?le.querySelector(&#x27;i&#x27;):null;
+          if(ie){
+            var idx=ie.textContent,val=le.textContent.slice(idx.length),px=has(le.className,&#x27;sm&#x27;)?13:14,fi=F(500,9),avail=cw-4-tw(idx,fi)-3-5;
+            while(px&gt;9&amp;&amp;tw(val,F(600,px,true))&gt;avail)px--;
+            T(idx,x+4,yy+10,fi,C.mut);T(val,x+cw-5,bl(yy,rH,px),F(600,px,true),col,&#x27;right&#x27;);
+          }
+          HL(x+1,yy+rH,cw-1,C.line,1.5);yy+=rH;
+        }
+        if(!C.foot)HL(x,yy,cw,C.line,0);
+        T(ch[6].textContent,x+cw-5,bl(yy,fH,14),F(700,14,true),col,&#x27;right&#x27;);
+      }
+      y+=cH+gap;
+    }
+    y+=Math.max(0,6-gap);
+  }
+  function lines(el){
+    if(el.getAttribute(&#x27;style&#x27;)){y+=10;HL(x0,y,iw,C.line,3);y+=9}
+    Array.prototype.forEach.call(el.children,function(d,di){
+      var k=d.className||&#x27;&#x27;;if(di)y+=3;
+      if(has(k,&#x27;ln&#x27;)){
+        var tot=has(k,&#x27;tot&#x27;),a=d.children[0].textContent,b=d.children[1].textContent;
+        if(tot){y+=3;HL(x0,y,iw,C.line,3);y+=6}
+        var pv=tot?17:14,fv=F(tot?700:600,pv,true),fa=F(tot?700:400,14),la=wrap(a,fa,Math.max(60,iw-tw(b,fv)-10)),rh=Math.round(pv*1.4),base=bl(y,rh,pv);
+        T(b,x0+iw,base,fv,has(k,&#x27;big&#x27;)?C.acc:has(k,&#x27;ok&#x27;)?C.ok:has(k,&#x27;due&#x27;)?C.warn:C.ink,&#x27;right&#x27;);
+        la.forEach(function(l,i){T(l,x0,base+i*20,fa,C.ink)});
+        y+=rh+(la.length-1)*20;
+      }
+      else if(k===&#x27;hint&#x27;)P(d.textContent,12,400,{col:C.mut});
+      else if(k===&#x27;chu&#x27;)P(d.textContent,13,400,{col:C.mut,it:true});
+      else if(d.textContent.trim())P(d.textContent.trim(),13,400);
+    });
+  }
+  Array.prototype.forEach.call(root.children,function(el){
+    var cl=el.className||&#x27;&#x27;,tag=el.tagName;
+    if(cl===&#x27;bh&#x27;){
+      var sm=el.querySelector(&#x27;small&#x27;),nm=&#x27;&#x27;;Array.prototype.forEach.call(el.childNodes,function(n){if(n.nodeType===3)nm+=n.nodeValue});
+      P(nm,14,700,{al:&#x27;center&#x27;});if(sm)P(sm.textContent,12,400,{al:&#x27;center&#x27;});
+    }
+    else if(tag===&#x27;H3&#x27;){y+=8;P(el.textContent,20,700,{al:&#x27;center&#x27;,num:true});y+=6}
+    else if(cl===&#x27;meta&#x27;){
+      Array.prototype.forEach.call(el.children,function(sp,i){if(i)y+=2;
+        rich(sp,13,iw).forEach(function(ln1){ln1.forEach(function(k){T(k.t,x0+k.x,bl(y,18,13),k.f,C.ink)});y+=18})});
+      y+=8;HL(x0,y,iw,C.line,3);y+=1;
+    }
+    else if(cl===&#x27;gt&#x27;){
+      y+=10;var a=el.children[0].textContent,b=el.children[1].textContent,fb=F(700,14,true),fa=F(700,14),base=bl(y,20,14);
+      T(b,x0+iw,base,fb,C.ink,&#x27;right&#x27;);
+      wrap(a,fa,Math.max(40,iw-tw(b,fb)-8)).forEach(function(l){T(l,x0,bl(y,20,14),fa,C.ink);y+=20});y+=4;
+    }
+    else if(cl===&#x27;cap&#x27;){y+=4;P(el.textContent,12,400,{col:C.mut});y+=2}
+    else if(has(cl,&#x27;lg&#x27;))ledger(el,has(cl,&#x27;bi&#x27;));
+    else if(cl===&#x27;lines&#x27;)lines(el);
+    else if(cl===&#x27;ft&#x27;){
+      y+=10;HL(x0,y,iw,C.line,3);y+=9;
+      var parts=[&#x27;&#x27;];Array.prototype.forEach.call(el.childNodes,function(n){if(n.nodeType===1&amp;&amp;n.tagName===&#x27;BR&#x27;)parts.push(&#x27;&#x27;);else parts[parts.length-1]+=n.textContent});
+      parts.forEach(function(p){if(p.trim())P(p.trim(),12,400,{al:&#x27;center&#x27;})});
+    }
+    else if(el.textContent.trim()){y+=8;P(el.textContent.trim(),13,400)}
+  });
+  return{L:L,H:y+padY,ops:ops,texts:texts};
+}
+function billPaint(lay,s){
+  var cv=document.createElement(&#x27;canvas&#x27;);cv.width=Math.round(lay.L*s);cv.height=Math.ceil(lay.H*s);
+  var g=cv.getContext(&#x27;2d&#x27;);g.fillStyle=&#x27;#fff&#x27;;g.fillRect(0,0,cv.width,cv.height);
+  lay.ops.forEach(function(op){op(g,s)});
+  cv._texts=lay.texts;return cv;
+}
+/* ảnh để chia sẻ: phiếu ít mã thì ngang như màn hình điện thoại; phiếu rất nhiều mã thì nới ngang ra cho ảnh khỏi dài quá */
+function shareCanvas(st,c){
+  var Ls=[400,468,604,740],lay=null;
+  for(var i=0;i&lt;Ls.length;i++){lay=billLayout(st,c,Ls[i],false);if(lay.H/lay.L&lt;=4)break}
+  return billPaint(lay,Math.min(2.5,1600/lay.L,Math.sqrt(7e6/(lay.L*lay.H))));
+}
+/* ảnh đen trắng cho máy in nhiệt: giấy 58mm = 384 điểm, giấy 80mm = 576 điểm (như app Sổ Nợ) */
+function thermalCanvas(st,c,paper){var W=paper===&#x27;80&#x27;?576:384,s=1.6;return billPaint(billLayout(st,c,W/s,true),s)}
+function monoOf(cv){
+  var W=cv.width,H=cv.height,g=cv.getContext(&#x27;2d&#x27;),mono=new Uint8Array(W*H),B=1024;
+  for(var y0=0;y0&lt;H;y0+=B){var bh=Math.min(B,H-y0),d=g.getImageData(0,y0,W,bh).data,o=y0*W;
+    for(var q=0,n=W*bh;q&lt;n;q++)mono[o+q]=(0.299*d[q*4]+0.587*d[q*4+1]+0.114*d[q*4+2])&lt;135?1:0}
+  return{mono:mono,w:W,h:H};
+}
+var SH={tk:0,url:&#x27;&#x27;,file:null,name:&#x27;&#x27;};
+function stamp(ts){var d=new Date(ts||Date.now()),p=function(x){return x&lt;10?&#x27;0&#x27;+x:&#x27;&#x27;+x};return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+&#x27;-&#x27;+p(d.getHours())+p(d.getMinutes())}
+function dataBlob(u){var bin=atob(u.slice(u.indexOf(&#x27;,&#x27;)+1)),n=bin.length,a=new Uint8Array(n);for(var k=0;k&lt;n;k++)a[k]=bin.charCodeAt(k);return new Blob([a],{type:&#x27;image/png&#x27;})}
+function openShare(st){
+  if(!st.entries.length){toast(&#x27;Phiếu chưa có mã cân nào&#x27;);return}
+  var tk=++SH.tk;SH.url=&#x27;&#x27;;SH.file=null;
+  openModal(&#x27;&lt;h3&gt;Ảnh phiếu để chia sẻ&lt;/h3&gt;&lt;div class=&quot;imgw&quot; id=&quot;shBox&quot;&gt;&lt;div class=&quot;empty&quot;&gt;Đang tạo ảnh phiếu…&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;hint&quot; id=&quot;shHint&quot;&gt;&lt;/div&gt;&#x27;+
+    &#x27;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn&quot; data-m=&quot;close&quot;&gt;Đóng&lt;/button&gt;&#x27;+(SA?&#x27;&lt;button class=&quot;btn pri&quot; data-m=&quot;shgo&quot; id=&quot;shGo&quot; disabled&gt;Chia sẻ ảnh&lt;/button&gt;&lt;a class=&quot;btn&quot; data-m=&quot;shsave&quot; id=&quot;shSave&quot; role=&quot;button&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Lưu ảnh&lt;/a&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;,&#x27;share&#x27;);
+  /* tạo sẵn ảnh ngay khi mở bảng, để lúc bấm “Chia sẻ ảnh” là gọi chia sẻ liền (iPhone chỉ cho chia sẻ ngay trong cú bấm) */
+  fontsThen(function(){
+    if(tk!==SH.tk||modalKind!==&#x27;share&#x27;||!$(&#x27;#shBox&#x27;))return;
+    try{
+      var cv=shareCanvas(st,compute(st,cfg)),url=cv.toDataURL(&#x27;image/png&#x27;);
+      if(!url||url.length&lt;200)throw new Error(&#x27;empty&#x27;);
+      SH.url=url;SH.name=&#x27;phieu-can-ga-&#x27;+stamp(st.createdAt)+&#x27;.png&#x27;;
+      try{SH.file=new File([dataBlob(url)],SH.name,{type:&#x27;image/png&#x27;})}catch(e){SH.file=null}
+      var im=document.createElement(&#x27;img&#x27;);im.id=&#x27;shImg&#x27;;im.alt=&#x27;Ảnh phiếu cân gà&#x27;;im.src=url;$(&#x27;#shBox&#x27;).innerHTML=&#x27;&#x27;;$(&#x27;#shBox&#x27;).appendChild(im);
+      var a=$(&#x27;#shSave&#x27;);if(a){a.href=url;a.setAttribute(&#x27;download&#x27;,SH.name)}
+      var b=$(&#x27;#shGo&#x27;);if(b)b.disabled=false;
+      $(&#x27;#shHint&#x27;).textContent=SA?&#x27;Bấm “Chia sẻ ảnh” rồi chọn Zalo (hoặc ứng dụng khác). Máy nào không chia sẻ được: bấm “Lưu ảnh”, hoặc chạm giữ vào ảnh để lưu.&#x27;:&#x27;Chạm giữ vào ảnh để lưu hoặc sao chép. Nút chia sẻ có ở bản cài trong app quy trình nuôi.&#x27;;
+    }catch(e){$(&#x27;#shBox&#x27;).innerHTML=&#x27;&lt;div class=&quot;empty&quot;&gt;Máy này không tạo được ảnh phiếu. Hãy dùng “Sao chép gửi Zalo”.&lt;/div&gt;&#x27;}
+  });
+}
+function shareGo(){
+  var f=SH.file,nv=null,cand=[navigator];if(NAV!==navigator)cand.push(NAV);
+  if(f)for(var i=0;i&lt;cand.length&amp;&amp;!nv;i++){try{if(cand[i].share&amp;&amp;cand[i].canShare&amp;&amp;cand[i].canShare({files:[f]}))nv=cand[i]}catch(e){}}
+  if(!nv){toast(&#x27;Máy này chưa chia sẻ ảnh được — bấm “Lưu ảnh” rồi gửi ảnh đã lưu&#x27;);return}
+  var data={files:[f],title:&#x27;Phiếu cân gà&#x27;},bad=function(e){if(!(e&amp;&amp;e.name===&#x27;AbortError&#x27;))toast(&#x27;Chưa chia sẻ được — bấm “Lưu ảnh” rồi gửi ảnh đã lưu&#x27;)};
+  /* khung cân bị trình duyệt chặn chia sẻ (không phải do người dùng bấm Huỷ) thì thử lại ngay qua trang chính */
+  var again=function(e){if(e&amp;&amp;e.name===&#x27;AbortError&#x27;)return;if(nv!==NAV&amp;&amp;NAV.share){try{NAV.share(data).catch(bad)}catch(x){bad(x)}}else bad(e)};
+  try{nv.share(data).catch(again)}catch(e){again(e)}
+}
+
+/* ---------- IN PHIẾU: nhiều cách in như phần in của app Sổ Nợ ----------
+   1) Máy tính A4/A5 và 2) in nhiệt qua trình duyệt: mở hộp thoại in của máy (in ra máy in bất kỳ hoặc lưu PDF).
+   3) Máy in nhiệt Bluetooth: gửi thẳng ảnh phiếu tới máy in, cùng cách kết nối và cùng lệnh in như app Sổ Nợ. */
+var PR={st:null,dev:null,ch:null,name:&#x27;&#x27;,busy:false,msg:&#x27;&#x27;,dlg:0,tok:0};
+var PR_SVCS=[0x18F0,0xFF00,0xFFE0,0xFEE7,0x18F1,&#x27;000018f0-0000-1000-8000-00805f9b34fb&#x27;,&#x27;0000ff00-0000-1000-8000-00805f9b34fb&#x27;,&#x27;0000ffe0-0000-1000-8000-00805f9b34fb&#x27;];
+/* khổ giấy: nhớ riêng cho Cân Gà; chưa chọn lần nào thì lấy theo khổ đã chọn bên app Sổ Nợ trên cùng máy (chỉ đọc, không ghi sang) */
+function prPaper(){var v=cfg.prPaper||lsRaw(&#x27;sk_paper&#x27;);return v===&#x27;80&#x27;?&#x27;80&#x27;:&#x27;58&#x27;}
+function prSize(){var v=cfg.prSize||lsRaw(&#x27;sk_inv_size&#x27;);return v===&#x27;A5&#x27;?&#x27;A5&#x27;:&#x27;A4&#x27;}
+function prBtOK(){try{return !!(NAV.bluetooth&amp;&amp;NAV.bluetooth.requestDevice)}catch(e){return false}}
+function prNote(){var a=inApp();return a?&#x27;⚠ Đang mở app bên trong &#x27;+a+&#x27; nên có thể không in được. Hãy mở bằng Chrome (hoặc Safari trên iPhone).&#x27;:&#x27;Trong hộp thoại in của máy: chọn đúng máy in và khổ giấy — có thể chọn “Lưu thành PDF”.&#x27;}
+function prConnText(){return !prBtOK()?&#x27;Máy / trình duyệt này không dùng được Bluetooth.&#x27;:(PR.ch?&#x27;Đã kết nối: &#x27;+(PR.name||&#x27;máy in&#x27;)+&#x27;.&#x27;:&#x27;Chưa kết nối.&#x27;+(cfg.prName?&#x27; Lần trước: &#x27;+cfg.prName+&#x27;.&#x27;:&#x27;&#x27;))}
+function prSay(t){PR.msg=t;var el=document.getElementById(&#x27;prMsg&#x27;);if(el)el.textContent=t}
+function prConnPaint(){var el=document.getElementById(&#x27;prConn&#x27;);if(el)el.textContent=prConnText()}
+function openPrint(st){
+  if(!st.entries.length){toast(&#x27;Phiếu chưa có mã cân nào&#x27;);return}
+  PR.st=st;var paper=prPaper(),size=prSize();
+  openModal(&#x27;&lt;h3 style=&quot;text-align:center&quot;&gt;Chọn cách in phiếu&lt;/h3&gt;&#x27;+
+   &#x27;&lt;button class=&quot;pm a&quot; data-m=&quot;pra4&quot;&gt;&lt;b&gt;🖨️ Máy tính — Phiếu A4/A5&lt;/b&gt;&lt;span&gt;Phiếu đầy đủ khổ A4/A5 (in máy tính, hoặc lưu PDF). Khổ: &#x27;+size+&#x27;&lt;/span&gt;&lt;/button&gt;&#x27;+
+   &#x27;&lt;div class=&quot;seg&quot;&gt;Khổ A4/A5:&lt;button data-m=&quot;prsz&quot; data-v=&quot;A4&quot; aria-pressed=&quot;&#x27;+(size===&#x27;A4&#x27;)+&#x27;&quot;&gt;A4&lt;/button&gt;&lt;button data-m=&quot;prsz&quot; data-v=&quot;A5&quot; aria-pressed=&quot;&#x27;+(size===&#x27;A5&#x27;)+&#x27;&quot;&gt;A5&lt;/button&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;button class=&quot;pm b&quot; data-m=&quot;prth&quot;&gt;&lt;b&gt;🖨️ In nhiệt qua trình duyệt (58/80mm)&lt;/b&gt;&lt;span&gt;Máy in nhiệt USB/WiFi / AirPrint / lưu PDF. Chạy mọi máy (kể cả iPhone).&lt;/span&gt;&lt;/button&gt;&#x27;+
+   &#x27;&lt;button class=&quot;pm c&quot; data-m=&quot;prbt&quot;&gt;&lt;b&gt;📶 In máy in Bluetooth (nhiệt)&lt;/b&gt;&lt;span&gt;Máy in nhiệt Bluetooth. Chỉ Android + Chrome. &lt;i id=&quot;prConn&quot; style=&quot;font-style:normal&quot;&gt;&#x27;+esc(prConnText())+&#x27;&lt;/i&gt;&lt;/span&gt;&lt;/button&gt;&#x27;+
+   &#x27;&lt;div class=&quot;seg&quot;&gt;Khổ giấy:&lt;button data-m=&quot;prpp&quot; data-v=&quot;58&quot; aria-pressed=&quot;&#x27;+(paper===&#x27;58&#x27;)+&#x27;&quot;&gt;58mm&lt;/button&gt;&lt;button data-m=&quot;prpp&quot; data-v=&quot;80&quot; aria-pressed=&quot;&#x27;+(paper===&#x27;80&#x27;)+&#x27;&quot;&gt;80mm&lt;/button&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;button class=&quot;btn&quot; data-m=&quot;prcon&quot;&gt;🔗 Kết nối / đổi máy in Bluetooth&lt;/button&gt;&#x27;+
+   &#x27;&lt;div class=&quot;hint&quot; id=&quot;prMsg&quot;&gt;&#x27;+esc(PR.busy?PR.msg:prNote())+&#x27;&lt;/div&gt;&#x27;+
+   &#x27;&lt;button class=&quot;btn dark&quot; data-m=&quot;close&quot;&gt;Đóng&lt;/button&gt;&#x27;,&#x27;print&#x27;);
+}
+/* Bản in: cùng nội dung với phiếu đang xem. In từ trang chính (kể cả khi Cân Gà nằm trong app quy trình) để máy nào cũng ra đúng 1 tờ phiếu:
+   lúc in thì ẩn hết phần còn lại của trang, chỉ hiện tờ phiếu; in xong gỡ sạch, không đụng gì tới app quy trình. */
+var PRINT_CSS=&#x27;@media screen{.pg{display:none!important}}&#x27;+
+ &#x27;.pg{all:initial;display:block;visibility:visible;box-sizing:border-box;color:#000;background:#fff;font:14px/1.4 &quot;Be Vietnam Pro&quot;,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}&#x27;+
+ &#x27;.pg *{box-sizing:border-box}.pg b{font-weight:700}&#x27;+
+ &#x27;.pg .bill{display:block}.pg .bh{text-align:center;font-weight:700;font-size:1.1em}.pg .bh small{display:block;font-weight:400;font-size:.82em}&#x27;+
+ &#x27;.pg h3{display:block;margin:.5em 0 .4em;text-align:center;font-size:1.5em;font-weight:700;letter-spacing:.06em}&#x27;+
+ &#x27;.pg .meta{display:block;font-size:.93em;border-bottom:1px dashed #000;padding-bottom:.55em}.pg .meta span{display:block;margin-top:2px}.pg .meta b{display:inline}&#x27;+
+ &#x27;.pg .gt{margin:.75em 0 .3em;font-weight:700;display:flex;justify-content:space-between;gap:8px}&#x27;+
+ &#x27;.pg .cap{font-size:.85em;margin:.3em 0 .15em}&#x27;+
+ &#x27;.pg .lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(4.6em,1fr));gap:.4em;margin-bottom:.45em}&#x27;+
+ &#x27;.pg .lc{border:1px solid #000;border-radius:.4em;overflow:hidden;display:flex;flex-direction:column;min-width:0;break-inside:avoid;page-break-inside:avoid}&#x27;+
+ &#x27;.pg .lh{font-size:.72em;text-transform:uppercase;letter-spacing:.05em;text-align:center;padding:.15em 0;border-bottom:1px solid #000}&#x27;+
+ &#x27;.pg .le{height:1.72em;display:flex;align-items:center;justify-content:space-between;gap:2px;padding:0 .35em 0 .3em;font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px dotted #000;min-width:0}&#x27;+
+ &#x27;.pg .le i{font-size:.64em;font-weight:500;font-style:normal;align-self:flex-start;padding-top:.15em}.pg .le.sm{font-size:.93em}&#x27;+
+ &#x27;.pg .lf{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;padding:.2em .35em;background:#e6e6e6;white-space:nowrap}&#x27;+
+ &#x27;.pg .lg.bi .lc{border-style:dashed}&#x27;+
+ &#x27;.pg .lines{display:flex;flex-direction:column;gap:.2em}&#x27;+
+ &#x27;.pg .ln{display:flex;justify-content:space-between;gap:10px;break-inside:avoid;page-break-inside:avoid}&#x27;+
+ &#x27;.pg .ln span:last-child{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}&#x27;+
+ &#x27;.pg .ln.tot{border-top:1px dashed #000;padding-top:.35em;margin-top:.2em;font-weight:700}.pg .ln.tot span:last-child{font-weight:700;font-size:1.2em}&#x27;+
+ &#x27;.pg .chu{font-size:.93em;font-style:italic}.pg .hint{font-size:.85em}&#x27;+
+ &#x27;.pg .ft{margin-top:.7em;border-top:1px dashed #000;padding-top:.55em;font-size:.85em;text-align:center}&#x27;+
+ &#x27;.pg.a4{font-size:14px}.pg.a4 .bill{max-width:170mm;margin:0 auto}.pg.a5{font-size:11.5px}.pg.a5 .bill{max-width:132mm;margin:0 auto}&#x27;+
+ &#x27;.pg.th{font-size:12px;width:100%;padding:2mm}.pg.th.p58{max-width:58mm}.pg.th.p80{max-width:80mm}&#x27;+
+ &#x27;.pg.th .lg{grid-template-columns:repeat(auto-fill,minmax(4.1em,1fr));gap:.25em}&#x27;;
+function topWin(){if(EMBED){try{var p=window.parent;if(p&amp;&amp;p.document&amp;&amp;p.document.body)return p}catch(e){}}return window}
+function printClean(W){try{var D=W.document;[&#x27;cgPrintHost&#x27;,&#x27;cgPrintCss&#x27;].forEach(function(id){var el=D.getElementById(id);if(el&amp;&amp;el.parentNode)el.parentNode.removeChild(el)});D.documentElement.classList.remove(&#x27;cg-pr&#x27;)}catch(e){}}
+/* mode: &#x27;A4&#x27; | &#x27;A5&#x27; (máy tính) · &#x27;58&#x27; | &#x27;80&#x27; (in nhiệt qua trình duyệt) */
+function printDoc(st,mode){
+  if(Date.now()-PR.dlg&lt;1500)return;PR.dlg=Date.now();               /* lỡ bấm In hai lần liền thì chỉ mở 1 hộp in */
+  var W=topWin(),D=W.document,th=mode===&#x27;58&#x27;||mode===&#x27;80&#x27;,tok=++PR.tok;
+  printClean(W);
+  try{
+    var css=D.createElement(&#x27;style&#x27;);css.id=&#x27;cgPrintCss&#x27;;
+    css.textContent=&#x27;@media screen{#cgPrintHost{display:none!important}}&#x27;+
+      &#x27;@media print{@page{&#x27;+(th?&#x27;margin:0&#x27;:&#x27;size:&#x27;+(mode===&#x27;A5&#x27;?&#x27;portrait&#x27;:&#x27;A4&#x27;)+&#x27;;margin:&#x27;+(mode===&#x27;A5&#x27;?&#x27;8mm&#x27;:&#x27;12mm&#x27;))+&#x27;}&#x27;+
+      &#x27;html.cg-pr,html.cg-pr body{display:block!important;visibility:visible!important;position:static!important;float:none!important;width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:#fff!important;color-scheme:light!important}&#x27;+
+      &#x27;html.cg-pr body&gt;*:not(#cgPrintHost){display:none!important}&#x27;+
+      &#x27;html.cg-pr body&gt;#cgPrintHost{display:block!important;visibility:visible!important;position:static!important;float:none!important;width:auto!important;height:auto!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important;border:0!important;opacity:1!important;transform:none!important;background:#fff!important;color:#000!important}}&#x27;;
+    var host=D.createElement(&#x27;div&#x27;);host.id=&#x27;cgPrintHost&#x27;;
+    var inner=&#x27;&lt;style&gt;&#x27;+PRINT_CSS+&#x27;&lt;/style&gt;&lt;div class=&quot;pg &#x27;+(th?&#x27;th p&#x27;+mode:(mode===&#x27;A5&#x27;?&#x27;a5&#x27;:&#x27;a4&#x27;))+&#x27;&quot;&gt;&#x27;+billHTML(st,compute(st,cfg)).replace(&#x27; id=&quot;bill&quot;&#x27;,&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;;
+    var root=null;try{if(host.attachShadow)root=host.attachShadow({mode:&#x27;open&#x27;})}catch(e){root=null}
+    (root||host).innerHTML=inner;
+    D.head.appendChild(css);D.body.appendChild(host);D.documentElement.classList.add(&#x27;cg-pr&#x27;);
+  }catch(e){printClean(W);toast(&#x27;Máy này không in được. Hãy dùng “Chia sẻ ảnh phiếu”.&#x27;);return}
+  /* Gỡ tờ phiếu in ra khỏi trang KHI HỘP THOẠI IN ĐÃ ĐÓNG — không gỡ sớm, vì có máy vẽ lại bản in mỗi lần người dùng đổi khổ giấy trong hộp in.
+     · Trình duyệt giữ trang đứng yên trong lúc hộp in mở (Chrome): lệnh in trả về là hộp in đã đóng -&gt; gỡ ngay.
+     · Trình duyệt không giữ trang: chờ tới khi người dùng chạm lại vào app (lúc đó hộp in chắc chắn đã đóng) mới gỡ.
+     Trong lúc chờ, màn hình không khác gì: tờ phiếu chỉ hiện trên bản in. */
+  var done=false,t1=0,evs=[&#x27;pointerdown&#x27;,&#x27;touchstart&#x27;,&#x27;mousedown&#x27;,&#x27;keydown&#x27;];
+  function off(){evs.forEach(function(ev){try{document.removeEventListener(ev,onUser,true)}catch(e){}try{D.removeEventListener(ev,onUser,true)}catch(e){}})}
+  function clean(){if(done)return;done=true;off();if(PR.clean===clean)PR.clean=null;if(tok===PR.tok)printClean(W)}
+  function onUser(){if(t1&amp;&amp;Date.now()-t1&gt;1000)clean()}
+  PR.clean=clean;
+  setTimeout(function(){
+    if(done)return;
+    try{W.focus()}catch(e){}
+    var t0=Date.now();
+    try{W.print()}catch(e){clean();toast(&#x27;Trình duyệt này không mở được hộp thoại in. Hãy mở app bằng Chrome hoặc Safari.&#x27;);return}
+    if(Date.now()-t0&gt;700){clean();return}
+    t1=Date.now();evs.forEach(function(ev){try{document.addEventListener(ev,onUser,true);if(D!==document)D.addEventListener(ev,onUser,true)}catch(e){}});
+  },60);
+}
+function prConnect(){
+  if(!prBtOK()){toast(&#x27;Máy này không in Bluetooth được (cần Chrome trên Android hoặc máy tính).&#x27;);return Promise.resolve(false)}
+  var rq,picked=false;try{rq=NAV.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:PR_SVCS})}catch(e){rq=Promise.reject(e)}
+  return rq.then(function(dev){
+    picked=true;
+    if(BT.on&amp;&amp;BT.dev&amp;&amp;(BT.dev===dev||(dev.id&amp;&amp;BT.dev.id===dev.id))){toast(&#x27;Thiết bị vừa chọn là CÂN đang nối, không phải máy in.&#x27;);return false}
+    try{if(PR.dev&amp;&amp;PR.dev!==dev&amp;&amp;PR.dev.gatt&amp;&amp;PR.dev.gatt.connected)PR.dev.gatt.disconnect()}catch(e){}
+    PR.ch=null;PR.dev=dev;PR.name=dev.name||&#x27;Máy in&#x27;;prSay(&#x27;Đang kết nối &#x27;+PR.name+&#x27;…&#x27;);
+    if(!dev._cgPr){dev._cgPr=1;dev.addEventListener(&#x27;gattserverdisconnected&#x27;,function(){if(PR.dev===dev){PR.ch=null;prConnPaint()}})}
+    return prFind(dev).then(function(wc){
+      if(!wc){PR.dev=null;try{dev.gatt.disconnect()}catch(e){}toast(&#x27;Máy in này không cho ghi qua web (có thể là Bluetooth cổ điển SPP — web không dùng được).&#x27;);return false}
+      PR.ch=wc;cfg.prName=PR.name;saveCfg();toast(&#x27;Đã kết nối: &#x27;+PR.name);return true;
+    });
+  }).catch(function(e){
+    PR.ch=null;PR.dev=null;
+    toast(!picked&amp;&amp;e&amp;&amp;e.name===&#x27;NotFoundError&#x27;?&#x27;Chưa chọn máy in nào.&#x27;:&#x27;Không kết nối được máy in Bluetooth.&#x27;);
+    return false;
+  });
+}
+/* nối tới máy in rồi lấy cổng ghi đầu tiên tìm thấy, theo đúng thứ tự như app Sổ Nợ */
+function prFind(dev){
+  return dev.gatt.connect().then(function(srv){return srv.getPrimaryServices()}).then(function(svcs){
+    var i=0;function next(){if(i&gt;=svcs.length)return null;
+      return svcs[i++].getCharacteristics().then(function(cs){for(var j=0;j&lt;cs.length;j++){var pp=cs[j].properties;if(pp&amp;&amp;(pp.write||pp.writeWithoutResponse))return cs[j]}return next()},function(){return next()})}
+    return next();
+  });
+}
+/* máy in đã chọn trong lần mở app này mà tự ngắt (máy in ngủ, đi xa): nối lại thẳng, không bắt chọn lại từ đầu. Quá 8 giây không nối được thì thôi. */
+function prReconnect(){
+  var dev=PR.dev;if(!dev||!dev.gatt)return Promise.resolve(false);
+  prSay(&#x27;⏳ Đang nối lại &#x27;+(PR.name||&#x27;máy in&#x27;)+&#x27;…&#x27;);
+  return new Promise(function(res){
+    var fin=false,t=setTimeout(function(){if(fin)return;fin=true;try{dev.gatt.disconnect()}catch(e){}res(false)},8000);
+    prFind(dev).then(function(wc){if(fin)return;fin=true;clearTimeout(t);if(wc&amp;&amp;PR.dev===dev){PR.ch=wc;res(true)}else res(false)},function(){if(fin)return;fin=true;clearTimeout(t);res(false)});
+  });
+}
+/* gửi từng gói 128 byte, nghỉ 20 ms giữa các gói (như app Sổ Nợ) để máy in kịp nhận */
+function prWrite(bytes,onP){
+  var ch=PR.ch,i=0,n=bytes.length;
+  return new Promise(function(res,rej){
+    if(!ch){rej(new Error(&#x27;no printer&#x27;));return}
+    (function step(){
+      if(i&gt;=n){res();return}
+      var part=bytes.slice(i,i+128),w;i+=128;
+      try{w=ch.writeValueWithoutResponse(part)}catch(e){w=Promise.reject(e)}
+      w.catch(function(){return ch.writeValue(part)}).then(function(){if(onP)onP(Math.min(100,Math.round(i*100/n)));setTimeout(step,20)},rej);
+    })();
+  });
+}
+function prBluetooth(st,force){
+  if(PR.busy){toast(&#x27;⏳ Đang in — chờ in xong&#x27;);return}
+  if(!prBtOK()){toast(&#x27;Máy này không in Bluetooth được (cần Chrome trên Android hoặc máy tính). Hãy dùng 2 cách in ở trên.&#x27;);return}
+  PR.busy=true;
+  /* chưa chọn máy in lần nào: hỏi chọn ngay trong cú bấm (trình duyệt chỉ cho chọn khi có thao tác của người dùng). Đã chọn rồi mà bị ngắt: nối lại thẳng. */
+  var p=PR.ch?Promise.resolve(true):(PR.dev?prReconnect().then(function(ok){if(!ok)toast(&#x27;Không nối lại được &#x27;+(PR.name||&#x27;máy in&#x27;)+&#x27;. Bật máy in rồi bấm in lại, hoặc bấm “Kết nối / đổi máy in Bluetooth”.&#x27;);return ok}):prConnect());
+  p.then(function(ok){
+    if(!ok)return&#x27;no&#x27;;
+    prSay(&#x27;⏳ Đang chuẩn bị bản in…&#x27;);
+    return new Promise(function(res){fontsThen(res)}).then(function(){
+      var cv=thermalCanvas(st,compute(st,cfg),prPaper()),cm=Math.round(cv.height/80);
+      if(cv.height&gt;30000)return&#x27;long&#x27;;
+      if(cm&gt;150&amp;&amp;!force)return&#x27;ask&#x27;+cm;
+      var mo=monoOf(cv),cmd=rasterCmd(mo.mono,mo.w,mo.h);
+      toast(&#x27;Đang in…&#x27;);prSay(&#x27;⏳ Đang gửi bản in tới máy in… 0%&#x27;);
+      return prWrite(cmd,function(pc){prSay(&#x27;⏳ Đang gửi bản in tới máy in… &#x27;+pc+&#x27;%&#x27;)}).then(function(){return&#x27;ok&#x27;});
+    });
+  }).then(function(r){
+    PR.busy=false;
+    if(r===&#x27;ok&#x27;){prSay(&#x27;✓ Đã gửi lệnh in.&#x27;);toast(&#x27;Đã gửi lệnh in ✓&#x27;)}
+    else if(r===&#x27;long&#x27;){prSay(prNote());toast(&#x27;Phiếu quá dài để in nhiệt. Hãy in A4/A5.&#x27;)}
+    else if(typeof r===&#x27;string&#x27;&amp;&amp;r.indexOf(&#x27;ask&#x27;)===0){prSay(prNote());confirmBox(&#x27;Phiếu này in ra khoảng &#x27;+r.slice(3)+&#x27; cm giấy. Vẫn in?&#x27;,&#x27;Vẫn in&#x27;,function(){prBluetooth(st,true)})}
+    else prSay(prNote());
+    prConnPaint();
+  },function(){
+    PR.busy=false;PR.ch=null;try{if(PR.dev&amp;&amp;PR.dev.gatt&amp;&amp;PR.dev.gatt.connected)PR.dev.gatt.disconnect()}catch(x){}
+    prSay(&#x27;In lỗi — thử kết nối lại máy in.&#x27;);toast(&#x27;In lỗi — thử kết nối lại máy in.&#x27;);prConnPaint();
+  });
 }
 
 /* ---------- thẻ SỔ ---------- */
@@ -1849,7 +2370,9 @@ function renderHist(q){
 function openHist(id){
   var r=hist.filter(function(x){return x.id===id})[0];if(!r)return;
   var c=compute(r.state,cfg);
-  openModal(billHTML(r.state,c)+&#x27;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn danger&quot; data-m=&quot;hdel&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Xoá phiếu&lt;/button&gt;&lt;button class=&quot;btn&quot; data-m=&quot;hcopy&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Sao chép&lt;/button&gt;&lt;button class=&quot;btn&quot; data-m=&quot;hedit&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Mở lại để sửa&lt;/button&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Đóng&lt;/button&gt;&lt;/div&gt;&#x27;);
+  openModal(billHTML(r.state,c)+&#x27;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn danger&quot; data-m=&quot;hdel&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Xoá phiếu&lt;/button&gt;&lt;button class=&quot;btn&quot; data-m=&quot;hcopy&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Sao chép&lt;/button&gt;&#x27;+
+    &#x27;&lt;button class=&quot;btn&quot; data-m=&quot;himg&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;&#x27;+(SA?&#x27;📷 Chia sẻ ảnh&#x27;:&#x27;📷 Xem ảnh&#x27;)+&#x27;&lt;/button&gt;&#x27;+(SA?&#x27;&lt;button class=&quot;btn&quot; data-m=&quot;hprint&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;🖨 In phiếu&lt;/button&gt;&#x27;:&#x27;&#x27;)+
+    &#x27;&lt;button class=&quot;btn&quot; data-m=&quot;hedit&quot; data-id=&quot;&#x27;+esc(id)+&#x27;&quot;&gt;Mở lại để sửa&lt;/button&gt;&lt;button class=&quot;btn pri&quot; data-m=&quot;close&quot;&gt;Đóng&lt;/button&gt;&lt;/div&gt;&#x27;);
 }
 
 /* ---------- thẻ CÀI ĐẶT ---------- */
@@ -1865,13 +2388,20 @@ function renderCai(){
    &#x27;&lt;div class=&quot;g2&quot;&gt;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-rk&quot;&gt;Làm tròn kg tính tiền&lt;/label&gt;&#x27;+sel(&#x27;s-rk&#x27;,&#x27;roundKg&#x27;,[[10,&#x27;Không làm tròn&#x27;],[100,&#x27;Đến 0,1 kg&#x27;],[500,&#x27;Đến 0,5 kg&#x27;]])+&#x27;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-rm&quot;&gt;Làm tròn tiền hàng&lt;/label&gt;&#x27;+sel(&#x27;s-rm&#x27;,&#x27;roundMoney&#x27;,[[1,&#x27;Không làm tròn&#x27;],[500,&#x27;Đến 500đ&#x27;],[1000,&#x27;Đến 1.000đ&#x27;]])+&#x27;&lt;/div&gt;&lt;/div&gt;&#x27;+
    &#x27;&lt;label class=&quot;chk&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;s-speak&quot; data-s=&quot;speak&quot;&#x27;+(cfg.speak?&#x27; checked&#x27;:&#x27;&#x27;)+&#x27;&gt; Đọc to số kg sau mỗi lần cộng mã&lt;/label&gt;&#x27;+
+   &#x27;&lt;div class=&quot;g2&quot;&gt;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;s-rate&quot;&gt;Tốc độ đọc&lt;/label&gt;&#x27;+sel(&#x27;s-rate&#x27;,&#x27;speakRate&#x27;,[[1,&#x27;Chậm rãi&#x27;],[1.2,&#x27;Vừa&#x27;],[1.4,&#x27;Nhanh&#x27;],[1.7,&#x27;Rất nhanh&#x27;]])+&#x27;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label&gt;Nghe thử&lt;/label&gt;&lt;button class=&quot;btn&quot; data-act=&quot;ttstest&quot;&gt;🔊 Thử đọc&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&#x27;+
+   &#x27;&lt;div class=&quot;hint&quot; id=&quot;ttsStat&quot;&gt;&#x27;+esc(ttsText())+&#x27;&lt;/div&gt;&#x27;+
    &#x27;&lt;label class=&quot;chk&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;s-wake&quot; data-s=&quot;wake&quot;&#x27;+(cfg.wake?&#x27; checked&#x27;:&#x27;&#x27;)+&#x27;&gt; Giữ màn hình luôn sáng khi đang cân&lt;/label&gt;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Sao lưu dữ liệu&lt;/h2&gt;&lt;div class=&quot;hint&quot;&gt;Dữ liệu nằm trên máy này. Nên sao lưu định kỳ để không mất khi đổi máy hoặc xoá trình duyệt.&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;btns&quot;&gt;&lt;button class=&quot;btn&quot; data-act=&quot;bkcopy&quot;&gt;Sao chép dữ liệu sao lưu&lt;/button&gt;&#x27;+(SA?&#x27;&lt;button class=&quot;btn&quot; data-act=&quot;bkfile&quot;&gt;Tải file sao lưu&lt;/button&gt;&#x27;:&#x27;&#x27;)+&#x27;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;bk-file&quot;&gt;Khôi phục từ file sao lưu&lt;/label&gt;&lt;input type=&quot;file&quot; id=&quot;bk-file&quot; accept=&quot;.json,.txt,application/json,text/plain&quot;&gt;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;f&quot;&gt;&lt;label for=&quot;bk-text&quot;&gt;Hoặc dán dữ liệu sao lưu vào đây&lt;/label&gt;&lt;textarea id=&quot;bk-text&quot; rows=&quot;3&quot;&gt;&lt;/textarea&gt;&lt;/div&gt;&lt;button class=&quot;btn&quot; data-act=&quot;bkrestore&quot;&gt;Khôi phục từ ô dán&lt;/button&gt;&lt;/div&gt;&#x27;+
    &#x27;&lt;div class=&quot;card&quot;&gt;&lt;h2&gt;Hướng dẫn sử dụng&lt;/h2&gt;&#x27;+
-   &#x27;&lt;details open&gt;&lt;summary&gt;Cân nhanh trong 3 bước&lt;/summary&gt;&lt;ul&gt;&lt;li&gt;Ở thẻ &lt;b&gt;Cân&lt;/b&gt;: bấm số kg, bấm &lt;b&gt;CỘNG MÃ&lt;/b&gt;. Lặp lại cho từng lồng.&lt;/li&gt;&lt;li&gt;Sang thẻ &lt;b&gt;Tính tiền&lt;/b&gt;: nhập giá. Gõ 62 máy tự hiểu là 62.000đ.&lt;/li&gt;&lt;li&gt;Sang thẻ &lt;b&gt;Phiếu&lt;/b&gt;: lưu vào sổ hoặc sao chép gửi Zalo cho khách.&lt;/li&gt;&lt;/ul&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details open&gt;&lt;summary&gt;Cân nhanh trong 3 bước&lt;/summary&gt;&lt;ul&gt;&lt;li&gt;Ở thẻ &lt;b&gt;Cân&lt;/b&gt;: bấm số kg, bấm &lt;b&gt;CỘNG MÃ&lt;/b&gt;. Lặp lại cho từng lồng.&lt;/li&gt;&lt;li&gt;Sang thẻ &lt;b&gt;Tính tiền&lt;/b&gt;: nhập giá. Gõ 62 máy tự hiểu là 62.000đ.&lt;/li&gt;&lt;li&gt;Sang thẻ &lt;b&gt;Phiếu&lt;/b&gt;: lưu vào sổ, &lt;b&gt;chia sẻ ảnh phiếu&lt;/b&gt; qua Zalo, hoặc &lt;b&gt;in phiếu&lt;/b&gt;.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Bàn phím số nhận ngay lúc ngón tay chạm xuống, bấm nhanh hai ngón liền nhau vẫn đủ số.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Xoá hết để cân đợt mới&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Cân&lt;/b&gt;, bấm nút đỏ &lt;b&gt;🗑 Xoá hết&lt;/b&gt; ở đầu sổ cân. App hỏi lại trước khi xoá; phiếu chưa lưu thì chọn &lt;b&gt;Lưu vào Sổ rồi xoá&lt;/b&gt; hoặc &lt;b&gt;Xoá, không lưu&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Xoá hết là xoá &lt;b&gt;phiếu đang cân&lt;/b&gt;: mọi mã cân, bì đã cân, tên khách, tiền cọc / tiền trả / nợ cũ. App &lt;b&gt;giữ lại&lt;/b&gt; giá bán, cách trừ bì và toàn bộ phiếu đã lưu trong thẻ Sổ.&lt;/p&gt;&lt;p&gt;Lỡ tay xoá phiếu chưa lưu: bấm &lt;b&gt;↩ Lấy lại phiếu vừa xoá&lt;/b&gt; hiện ngay trên màn hình cân (còn trong 24 giờ, cho tới lần xoá hết kế tiếp).&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Chia sẻ ảnh phiếu&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Phiếu&lt;/b&gt; bấm &lt;b&gt;📷 Chia sẻ ảnh phiếu&lt;/b&gt;: app tạo một tấm ảnh giống phiếu đang xem, có đủ sổ cân chia cột. Bấm &lt;b&gt;Chia sẻ ảnh&lt;/b&gt; rồi chọn Zalo, hoặc bấm &lt;b&gt;Lưu ảnh&lt;/b&gt; để lưu vào máy. Máy nào không cho chia sẻ thì chạm giữ vào ảnh để lưu.&lt;/p&gt;&lt;p&gt;Phiếu cũ trong thẻ &lt;b&gt;Sổ&lt;/b&gt; cũng chia sẻ ảnh được. Nút &lt;b&gt;Sao chép gửi Zalo&lt;/b&gt; vẫn còn nếu muốn gửi dạng chữ.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;In phiếu: A4/A5, máy in nhiệt, Bluetooth&lt;/summary&gt;&lt;p&gt;Ở thẻ &lt;b&gt;Phiếu&lt;/b&gt; bấm &lt;b&gt;🖨 In phiếu&lt;/b&gt; rồi chọn 1 trong 3 cách, giống phần in của app Sổ Nợ:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Máy tính — Phiếu A4/A5&lt;/b&gt;: in máy in thường hoặc lưu thành PDF. Chọn khổ A4 hay A5 ngay bên dưới nút.&lt;/li&gt;&lt;li&gt;&lt;b&gt;In nhiệt qua trình duyệt (58/80mm)&lt;/b&gt;: máy in nhiệt cắm USB / WiFi, AirPrint; chạy cả trên iPhone.&lt;/li&gt;&lt;li&gt;&lt;b&gt;In máy in Bluetooth (nhiệt)&lt;/b&gt;: máy in nhiệt cầm tay. Bấm &lt;b&gt;Kết nối / đổi máy in Bluetooth&lt;/b&gt;, chọn tên máy in, chọn khổ 58mm hay 80mm rồi bấm in. Cần Chrome trên Android hoặc máy tính.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Khổ giấy được nhớ cho lần sau. Phiếu cũ trong thẻ Sổ cũng in được.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Đọc to số kg&lt;/summary&gt;&lt;p&gt;Bật &lt;b&gt;Đọc to số kg&lt;/b&gt; ở mục Cách cân, chọn &lt;b&gt;Tốc độ đọc&lt;/b&gt;, rồi bấm &lt;b&gt;🔊 Thử đọc&lt;/b&gt;. Dòng chữ ngay bên dưới cho biết máy đang đọc bằng giọng nào, hoặc vì sao máy không đọc được.&lt;/p&gt;&lt;p&gt;App mượn giọng đọc có sẵn của điện thoại, nên &lt;b&gt;máy chưa có giọng tiếng Việt thì không đọc được&lt;/b&gt;; khi đó app kêu “bíp” thay cho đọc. Cách cài giọng:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Máy Android&lt;/b&gt;: mở Cài đặt của điện thoại, gõ tìm “chuyển văn bản” → mở mục &lt;b&gt;Chuyển văn bản sang lời nói&lt;/b&gt; (có máy ghi “thành giọng nói”) → chọn công cụ của &lt;b&gt;Google&lt;/b&gt; → bấm hình bánh răng → &lt;b&gt;Cài đặt dữ liệu thoại&lt;/b&gt; → chọn &lt;b&gt;Tiếng Việt&lt;/b&gt; để tải về.&lt;/li&gt;&lt;li&gt;&lt;b&gt;iPhone&lt;/b&gt;: Cài đặt → Trợ năng → Nội dung được đọc → Giọng nói → Tiếng Việt.&lt;/li&gt;&lt;li&gt;Đang mở app bên trong &lt;b&gt;Zalo / Facebook&lt;/b&gt;: bấm dấu ⋮ (hoặc ···) rồi chọn mở bằng trình duyệt Chrome hoặc Safari.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Cài xong quay lại app, bấm &lt;b&gt;Thử đọc&lt;/b&gt;. Tên mục trong Cài đặt có thể hơi khác tuỳ hãng máy.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Sổ cân chia cột 5 mã để đối chiếu với lái&lt;/summary&gt;&lt;p&gt;Mỗi cột có đúng 5 mã cân theo thứ tự từ trên xuống, số nhỏ ở góc là số thứ tự mã. Dòng cuối mỗi cột là &lt;b&gt;cộng cột&lt;/b&gt;. Khi lái đọc sổ của họ, hai bên chỉ cần so cộng từng cột; cột nào lệch thì dò 5 số trong cột đó.&lt;/p&gt;&lt;p&gt;Bấm &lt;b&gt;Ẩn phím&lt;/b&gt; để xem được nhiều cột hơn. Chạm vào một số để sửa hoặc xoá. Số màu cam là mã nặng nhẹ khác thường, nên xem lại.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Chọn cách trừ bì (nằm chung một chỗ)&lt;/summary&gt;&lt;p&gt;Ở thẻ Cân bấm nút màu vàng &lt;b&gt;Bì… ▸&lt;/b&gt; (hoặc nút &lt;b&gt;Cách trừ bì&lt;/b&gt; ở thẻ Tính tiền). Chọn 1 trong 5 cách:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Không trừ bì&lt;/b&gt;.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Trừ theo mã cân&lt;/b&gt;: mỗi mã trừ bao nhiêu kg, máy tự nhân với số mã.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Trừ theo số lồng&lt;/b&gt;: số lồng × kg mỗi lồng.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Cân bì rỗng thực tế&lt;/b&gt;: bấm “Cân bì rỗng ngay”, cân các lồng rỗng, xong bấm “Xong, cân gà tiếp”.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Nhập thẳng tổng kg bì&lt;/b&gt;.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Cũng trong bảng đó có &lt;b&gt;Trừ hao %&lt;/b&gt;, &lt;b&gt;Trừ gam/con&lt;/b&gt; và &lt;b&gt;Trừ thêm kg&lt;/b&gt;. Kết quả hiện ngay bên dưới để hai bên cùng xem. Cách trừ bì được nhớ cho phiếu sau.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Kết nối cân Bluetooth&lt;/summary&gt;&lt;p&gt;Bấm &lt;b&gt;Cân Bluetooth&lt;/b&gt; ở thẻ Cân, rồi &lt;b&gt;Kết nối cân Bluetooth&lt;/b&gt; và chọn tên cân. Nếu không thấy số nhảy, thử &lt;b&gt;Kết nối kiểu Serial&lt;/b&gt; (cân Bluetooth đời cũ phải ghép đôi trong Cài đặt điện thoại trước).&lt;/p&gt;&lt;p&gt;Khi đã nối: mặt cân trong app hiện đúng số trên cân. Cân &lt;b&gt;đứng số&lt;/b&gt; thì app tự chốt thành một mã và kêu bíp, phải nhấc lồng ra thì mới chốt mã kế. Tắt “Tự chốt” nếu muốn tự bấm &lt;b&gt;CHỐT MÃ&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Cần Chrome trên Android hoặc máy tính; iPhone không hỗ trợ. Muốn xem thử trước khi có cân: bấm &lt;b&gt;Chạy thử bằng cân giả lập&lt;/b&gt;. Nếu cân lạ không ra số, mở mục &lt;b&gt;Dữ liệu thô&lt;/b&gt;, sao chép và gửi cho người làm app để chỉnh.&lt;/p&gt;&lt;/details&gt;&#x27;+
@@ -1900,7 +2430,32 @@ function showTab(t){
   if(t===&#x27;can&#x27;)renderCan();else if(t===&#x27;tien&#x27;)renderTien();else if(t===&#x27;phieu&#x27;)renderPhieu();else if(t===&#x27;so&#x27;)renderSo();else renderCai();
 }
 $(&#x27;#nav&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;button&#x27;);if(b)showTab(b.dataset.tab)});
-$(&#x27;#pad&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;button&#x27;);if(b)press(b.dataset.k)});
+/* BÀN PHÍM SỐ — cho nhạy:
+   · nhận phím ngay lúc ngón tay CHẠM xuống, không chờ nhấc tay (cách cũ dùng “click”: ngón hơi trượt, hoặc ngón sau chạm khi ngón trước chưa nhấc, là mất phím);
+   · chạm trúng khe hở giữa hai phím vẫn nhận phím gần nhất;
+   · phím nháy sáng + rung nhẹ ngay khi nhận. */
+var padEl=$(&#x27;#pad&#x27;),PAD_PE=!!window.PointerEvent,PAD_TE=(&#x27;ontouchstart&#x27; in window),padAt=0,padKey=null;
+function keyAt(x,y){
+  var best=null,bd=1e9;
+  Array.prototype.forEach.call(padEl.children,function(b){var r=b.getBoundingClientRect();if(!r.width||!r.height)return;
+    var dx=x&lt;r.left?r.left-x:(x&gt;r.right?x-r.right:0),dy=y&lt;r.top?r.top-y:(y&gt;r.bottom?y-r.bottom:0),d=dx*dx+dy*dy;if(d&lt;bd){bd=d;best=b}});
+  return bd&lt;=256?best:null;
+}
+function padHit(b){
+  if(!b||!b.dataset||!b.dataset.k)return;
+  var now=Date.now();if(b===padKey&amp;&amp;now-padAt&lt;40)return;      /* hai điểm chạm gần như cùng lúc trên MỘT phím (tay ướt, ngón tay + mép bàn tay): chỉ tính 1 lần. Người bấm lại cùng một phím nhanh nhất cũng cách nhau trên 80 ms nên không bị mất số. */
+  padKey=b;padAt=now;
+  b.classList.add(&#x27;on&#x27;);setTimeout(function(){b.classList.remove(&#x27;on&#x27;)},120);
+  if(b.dataset.k!==&#x27;add&#x27;){try{if(navigator.vibrate)navigator.vibrate(10)}catch(e){}}
+  press(b.dataset.k);
+}
+function padDown(t,x,y){var b=t&amp;&amp;t.closest?t.closest(&#x27;button&#x27;):null;if(!b||b.parentNode!==padEl)b=keyAt(x,y);padHit(b)}
+if(PAD_PE)padEl.addEventListener(&#x27;pointerdown&#x27;,function(e){if(e.pointerType===&#x27;mouse&#x27;&amp;&amp;e.button!==0)return;padDown(e.target,e.clientX,e.clientY)});
+else if(PAD_TE)padEl.addEventListener(&#x27;touchstart&#x27;,function(e){for(var i=0;i&lt;e.changedTouches.length;i++){var t=e.changedTouches[i];padDown(document.elementFromPoint(t.clientX,t.clientY),t.clientX,t.clientY)}},{passive:true});
+/* phím đã nhận lúc chạm xuống rồi: chặn cú “click” trình duyệt sinh thêm khi nhấc tay (nếu không, nó có thể rơi trúng nút của hộp hỏi vừa hiện ra ngay dưới ngón tay) */
+padEl.addEventListener(&#x27;touchend&#x27;,function(e){if(e.cancelable)e.preventDefault()},{passive:false});
+/* “click” chỉ còn dùng khi bấm bằng bàn phím máy tính (Enter/Space trên nút) hoặc trình duyệt quá cũ không có sự kiện chạm */
+padEl.addEventListener(&#x27;click&#x27;,function(e){if((PAD_PE||PAD_TE)&amp;&amp;(e.detail!==0||Date.now()-padAt&lt;700))return;var b=e.target.closest(&#x27;button&#x27;);if(b&amp;&amp;b.parentNode===padEl)press(b.dataset.k)});
 $(&#x27;#scale&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;button&#x27;);if(!b)return;var f=b.dataset.field;
   if(K.kind===&#x27;b&#x27;&amp;&amp;f===&#x27;c&#x27;){toast(&#x27;Cân bì rỗng không cần số con&#x27;);return}
   if(K.field===f&amp;&amp;f===&#x27;c&#x27;)K.c=&#x27;&#x27;;
@@ -1912,7 +2467,10 @@ $(&#x27;#chips&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.tar
   else if(b.dataset.act===&#x27;ded&#x27;)openDed(K.gid);
   else if(b.dataset.act===&#x27;bt&#x27;)openBT();
   else if(b.dataset.act===&#x27;pad&#x27;){K.hidePad=!K.hidePad;renderCan()}});
-$(&#x27;#list&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;button[data-id]&#x27;);if(b)editEntry(b.dataset.id)});
+$(&#x27;#list&#x27;).addEventListener(&#x27;click&#x27;,function(e){
+  var a=e.target.closest(&#x27;[data-act]&#x27;);
+  if(a){if(a.dataset.act===&#x27;clearall&#x27;)askClearAll();else if(a.dataset.act===&#x27;untrash&#x27;)trashRestore();return}
+  var b=e.target.closest(&#x27;button[data-id]&#x27;);if(b)editEntry(b.dataset.id)});
 $(&#x27;#btnClearSample&#x27;).addEventListener(&#x27;click&#x27;,function(){state=newState();resetK();saveState();renderCan()});
 $(&#x27;#btnBiDone&#x27;).addEventListener(&#x27;click&#x27;,function(){K.kind=&#x27;h&#x27;;K.field=&#x27;w&#x27;;K.w=&#x27;&#x27;;renderCan()});
 $(&#x27;#btnClose&#x27;).addEventListener(&#x27;click&#x27;,function(){try{window.parent.closeCanGa()}catch(e){}});
@@ -1940,6 +2498,16 @@ $(&#x27;#modal&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   else if(m===&#x27;hedit&#x27;){var r2=hist.filter(function(x){return x.id===id})[0];if(!r2)return;
     var go=function(){state=JSON.parse(JSON.stringify(r2.state));state.dirty=false;state.sample=false;resetK();saveState();showTab(&#x27;can&#x27;)};
     if(!state.sample&amp;&amp;state.dirty&amp;&amp;state.entries.length&amp;&amp;state.id!==id)confirmBox(&#x27;Phiếu đang cân chưa lưu. Bỏ để mở phiếu cũ?&#x27;,&#x27;Bỏ, mở phiếu cũ&#x27;,go);else{closeModal();go()}}
+  else if(m===&#x27;himg&#x27;||m===&#x27;hprint&#x27;){var r3=hist.filter(function(x){return x.id===id})[0];if(r3){if(m===&#x27;himg&#x27;)openShare(r3.state);else openPrint(r3.state)}}
+  else if(m===&#x27;clrsave&#x27;)doClearAll(true);
+  else if(m===&#x27;clrgo&#x27;)doClearAll(false);
+  else if(m===&#x27;shgo&#x27;)shareGo();
+  else if(m===&#x27;shsave&#x27;){if(SH.url)toast(&#x27;Ảnh được lưu vào mục Tải về (Tệp) của máy&#x27;);else e.preventDefault()}
+  else if(m===&#x27;prsz&#x27;){cfg.prSize=b.dataset.v===&#x27;A5&#x27;?&#x27;A5&#x27;:&#x27;A4&#x27;;saveCfg();openPrint(PR.st)}
+  else if(m===&#x27;prpp&#x27;){cfg.prPaper=b.dataset.v===&#x27;80&#x27;?&#x27;80&#x27;:&#x27;58&#x27;;saveCfg();openPrint(PR.st)}
+  else if(m===&#x27;pra4&#x27;||m===&#x27;prth&#x27;){var ps=PR.st;closeModal();printDoc(ps,m===&#x27;pra4&#x27;?prSize():prPaper())}
+  else if(m===&#x27;prcon&#x27;){if(PR.busy){toast(&#x27;⏳ Đang in — chờ in xong&#x27;);return}prConnect().then(function(){if(modalKind===&#x27;print&#x27;)openPrint(PR.st)})}
+  else if(m===&#x27;prbt&#x27;)prBluetooth(PR.st);
 });
 function modalField(e){
   var t=e.target;if(modalKind===&#x27;ded&#x27;&amp;&amp;(t.name===&#x27;dmode&#x27;||/^d-/.test(t.id||&#x27;&#x27;)))dedInput(t);
@@ -1989,8 +2557,8 @@ $(&#x27;#tab-phieu&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   var b=e.target.closest(&#x27;[data-act]&#x27;);if(!b)return;var a=b.dataset.act,txt=billText(state,cfg,compute(state,cfg));
   if(a===&#x27;save&#x27;)saveBill();
   else if(a===&#x27;copy&#x27;)copyText(txt,&#x27;Đã sao chép, mở Zalo và dán&#x27;);
-  else if(a===&#x27;share&#x27;){try{if(navigator.share)navigator.share({text:txt}).catch(function(){});else copyText(txt)}catch(er){copyText(txt)}}
-  else if(a===&#x27;print&#x27;){try{window.print()}catch(er){}}
+  else if(a===&#x27;shimg&#x27;)openShare(state);
+  else if(a===&#x27;print&#x27;)openPrint(state);
   else if(a===&#x27;new&#x27;)newBill();
 });
 $(&#x27;#tab-so&#x27;).addEventListener(&#x27;input&#x27;,function(e){if(e.target.id===&#x27;h-search&#x27;)renderHist(e.target.value)});
@@ -2003,18 +2571,27 @@ $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;change&#x27;,function(e){
   else if(k===&#x27;defCon&#x27;){cfg.defCon=Math.min(parseMoney(t.value),9999);K.c=cfg.defCon?String(cfg.defCon):&#x27;&#x27;}
   else if(k===&#x27;autoDec&#x27;||k===&#x27;roundKg&#x27;||k===&#x27;roundMoney&#x27;){cfg[k]=parseInt(t.value,10)||0;if(k===&#x27;autoDec&#x27;)K.w=&#x27;&#x27;}
   else cfg[k]=t.value;
-  saveCfg();if(k===&#x27;theme&#x27;)applyTheme();if(k===&#x27;wake&#x27;){if(cfg.wake)wake();else unwake()}toast(&#x27;Đã lưu cài đặt&#x27;);
+  saveCfg();if(k===&#x27;theme&#x27;)applyTheme();if(k===&#x27;wake&#x27;){if(cfg.wake)wake();else unwake()}
+  if(k===&#x27;speak&#x27;){if(cfg.speak)ttsWarm();ttsPaint()}
+  toast(&#x27;Đã lưu cài đặt&#x27;);
 });
 $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   var b=e.target.closest(&#x27;[data-act]&#x27;);if(!b)return;var a=b.dataset.act;
   if(a===&#x27;bt&#x27;){showTab(&#x27;can&#x27;);openBT()}
+  else if(a===&#x27;ttstest&#x27;){
+    /* đọc thử ngay trong cú bấm (iPhone chỉ cho đọc khi có thao tác của người dùng) */
+    TTS.warm=true;
+    if(!TTS.has){ttsPaint();toast(&#x27;Trình duyệt này không có bộ đọc&#x27;);return}
+    try{ttsSay(kgSay(48600),true)}catch(er){TTS.testing=0;TTS.state=&#x27;bad&#x27;;TTS.err=&#x27;throw&#x27;;TTS.fail++}
+    ttsPaint();
+  }
   else if(a===&#x27;bkcopy&#x27;)copyText(backupData(),&#x27;Đã sao chép dữ liệu sao lưu, dán vào Zalo/ghi chú để cất&#x27;);
   else if(a===&#x27;bkfile&#x27;){try{var d=new Date(),u=URL.createObjectURL(new Blob([backupData()],{type:&#x27;application/json&#x27;})),l=document.createElement(&#x27;a&#x27;);l.href=u;l.download=&#x27;canga-saoluu-&#x27;+d.getFullYear()+&#x27;-&#x27;+(d.getMonth()+1)+&#x27;-&#x27;+d.getDate()+&#x27;.json&#x27;;document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000)}catch(er){copyText(backupData())}}
   else if(a===&#x27;bkrestore&#x27;){var v=$(&#x27;#bk-text&#x27;).value.trim();if(!v){toast(&#x27;Dán dữ liệu sao lưu vào ô trước&#x27;);return}restoreData(v)}
 });
 /* app quy trình nuôi gọi mỗi lần mở / đóng khung cân */
 window.cangaOnOpen=function(){if(syncIn()&amp;&amp;!$(&#x27;#modal&#x27;).hidden){modalKind=&#x27;&#x27;;confirmCb=null;closeModal()}wake();showTab(curTab)};
-window.cangaOnClose=function(){unwake()};
+window.cangaOnClose=function(){unwake();if(PR.clean)PR.clean()};
 $(&#x27;#btnClose&#x27;).hidden=!EMBED;
 showTab(&#x27;can&#x27;);
 &lt;/script&gt;
