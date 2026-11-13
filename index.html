@@ -955,10 +955,11 @@ boot();
   --scale-bg:#060B09; --scale-fg:#F6C445; --scale-dim:#7F9187; --scale-ok:#5BE39F; --key:#1E2A24; --keyfn:#2A3931; color-scheme:dark }
 
 *,*::before,*::after{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior:none}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.4;overflow:hidden;-webkit-tap-highlight-color:transparent}
 button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}
+button{cursor:pointer;touch-action:manipulation}
+.failbar{background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:600;padding-block:6px}
 :focus-visible{outline:2px solid var(--corn);outline-offset:2px}
 .num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
 #app{height:100%;display:flex;flex-direction:column;max-width:760px;margin:0 auto}
@@ -968,7 +969,7 @@ header.top h1{margin:0;font:700 18px var(--f-num);letter-spacing:.02em;white-spa
 header.top h1 i{font-style:normal;color:var(--accent)}
 header.top .who{flex:1;text-align:right;font-size:12px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 main{flex:1;min-height:0;position:relative}
-.tab{position:absolute;inset:0;overflow-y:auto;padding-block:4px 20px;display:flex;flex-direction:column;gap:12px}
+.tab{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;padding-block:4px 20px;display:flex;flex-direction:column;gap:12px}
 #tab-can{overflow:hidden;gap:8px;padding-block:2px 8px}
 
 nav.tabs{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-top:1px solid var(--line)}
@@ -982,12 +983,13 @@ nav.tabs button[aria-selected=&quot;true&quot;]{color:var(--accent);border-top-c
 .sum b{display:block;font:700 17px var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sum span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .sum .hl b{color:var(--accent)}
-.chips{display:flex;gap:6px;overflow-x:auto;align-items:center;flex:none;padding-bottom:1px}
+.chips{display:flex;gap:6px;overflow-x:auto;overscroll-behavior:contain;align-items:center;flex:none;padding-bottom:1px}
+.chips,.sum,.scale,.pad,nav.tabs{-webkit-user-select:none;user-select:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap}
 .chip[aria-pressed=&quot;true&quot;]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip.ded{border-color:var(--corn);color:var(--corn)}
 .chip.bt[aria-pressed=&quot;true&quot;]{background:var(--ok);border-color:var(--ok);color:#fff}
-.list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:6px}
 .lgh{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .lgh b{color:var(--ink)}
 /* sổ cân: mỗi cột 5 mã, dưới cột là cộng cột */
@@ -1102,7 +1104,7 @@ details ul{padding-left:18px;margin:6px 0}
 
 /* --- hộp thoại, thông báo --- */
 #modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
-#modal .box{background:var(--surface);color:var(--ink);border-radius:14px;padding:16px;width:100%;max-width:520px;max-height:92%;overflow:auto;display:flex;flex-direction:column;gap:12px}
+#modal .box{background:var(--surface);color:var(--ink);border-radius:14px;padding:16px;width:100%;max-width:520px;max-height:92%;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px}
 #modal h3{margin:0;font-size:16px}
 #toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:999px;font-size:14px;font-weight:600;z-index:60;max-width:90%;text-align:center;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.k:active{transform:none}}
@@ -1122,6 +1124,7 @@ details ul{padding-left:18px;margin:6px 0}
     &lt;h1&gt;CÂN GÀ &lt;i&gt;PRO&lt;/i&gt;&lt;/h1&gt;
     &lt;span class=&quot;who&quot; id=&quot;who&quot;&gt;&lt;/span&gt;
   &lt;/header&gt;
+  &lt;div class=&quot;failbar gut noprint&quot; id=&quot;failBar&quot; hidden&gt;⚠ Trình duyệt không cho lưu dữ liệu vào máy (bộ nhớ đầy hoặc đang mở kiểu ẩn danh). Dữ liệu sẽ mất khi đóng app. Vào Cài đặt bấm “Sao chép dữ liệu sao lưu” ngay.&lt;/div&gt;
   &lt;main&gt;
     &lt;section class=&quot;tab gut&quot; id=&quot;tab-can&quot;&gt;
       &lt;div class=&quot;sample&quot; id=&quot;sampleBar&quot; hidden&gt;&lt;span&gt;Đang xem &lt;b&gt;phiếu mẫu&lt;/b&gt; để làm quen.&lt;/span&gt;&lt;button class=&quot;btn sm pri&quot; id=&quot;btnClearSample&quot;&gt;Bắt đầu cân&lt;/button&gt;&lt;/div&gt;
@@ -1138,7 +1141,7 @@ details ul{padding-left:18px;margin:6px 0}
       &lt;div class=&quot;pad&quot; id=&quot;pad&quot;&gt;
         &lt;button class=&quot;k&quot; data-k=&quot;7&quot;&gt;7&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;8&quot;&gt;8&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;9&quot;&gt;9&lt;/button&gt;&lt;button class=&quot;k fn&quot; data-k=&quot;bs&quot; aria-label=&quot;Xoá một số&quot;&gt;⌫&lt;/button&gt;
         &lt;button class=&quot;k&quot; data-k=&quot;4&quot;&gt;4&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;5&quot;&gt;5&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;6&quot;&gt;6&lt;/button&gt;&lt;button class=&quot;k fn&quot; data-k=&quot;undo&quot;&gt;Xoá mã cuối&lt;/button&gt;
-        &lt;button class=&quot;k&quot; data-k=&quot;1&quot;&gt;1&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;2&quot;&gt;2&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;3&quot;&gt;3&lt;/button&gt;&lt;button class=&quot;k add&quot; data-k=&quot;add&quot;&gt;&lt;b&gt;+&lt;/b&gt;&lt;span id=&quot;addLbl&quot;&gt;CỘNG MÃ&lt;/span&gt;&lt;/button&gt;
+        &lt;button class=&quot;k&quot; data-k=&quot;1&quot;&gt;1&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;2&quot;&gt;2&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;3&quot;&gt;3&lt;/button&gt;&lt;button class=&quot;k add&quot; data-k=&quot;add&quot;&gt;&lt;b id=&quot;addIco&quot;&gt;+&lt;/b&gt;&lt;span id=&quot;addLbl&quot;&gt;CỘNG MÃ&lt;/span&gt;&lt;/button&gt;
         &lt;button class=&quot;k zero&quot; data-k=&quot;0&quot;&gt;0&lt;/button&gt;&lt;button class=&quot;k&quot; data-k=&quot;,&quot;&gt;,&lt;/button&gt;
       &lt;/div&gt;
     &lt;/section&gt;
@@ -1199,9 +1202,9 @@ function tareInfo(g,nMa,biSum,nBi,gross){
 function compute(st,cfg){
   var rk=(cfg&amp;&amp;cfg.roundKg)||10,rm=(cfg&amp;&amp;cfg.roundMoney)||1;
   var gs=st.groups.map(function(g){
-    var gross=0,biSum=0,con=0,nMa=0,nBi=0;
+    var gross=0,biSum=0,con=0,nMa=0,nBi=0,grossCon=0,nNoCon=0;
     st.entries.forEach(function(e){if(e.gid!==g.id)return;
-      if(e.kind===&#x27;b&#x27;){biSum+=e.w;nBi++}else{gross+=e.w;con+=(e.con||0);nMa++}});
+      if(e.kind===&#x27;b&#x27;){biSum+=e.w;nBi++}else{gross+=e.w;con+=(e.con||0);nMa++;if(e.con&gt;0)grossCon+=e.w;else nNoCon++}});
     var ti=tareInfo(g,nMa,biSum,nBi,gross),tare=ti.kg;
     var net1=Math.max(0,gross-tare);
     var hao=R10(net1*(g.haoPct||0)/100);
@@ -1209,11 +1212,14 @@ function compute(st,cfg){
     var truKg=Math.min(g.truKg||0,Math.max(0,net1-hao-truCon));
     var net=roundStep(Math.max(0,net1-hao-truCon-truKg),rk);
     var money=Math.round(net*(g.price||0)/1000);
-    return{id:g.id,name:g.name,price:g.price||0,haoPct:g.haoPct||0,gross:gross,tare:tare,tareDesc:ti.desc,tareMode:ti.mode,biSum:biSum,net1:net1,hao:hao,truCon:truCon,truKg:truKg,net:net,con:con,nMa:nMa,nBi:nBi,money:money,avg:con&gt;0?R10(net1/con):0};
+    /* bình quân kg/con chỉ tính trên các mã CÓ nhập số con (bì chia theo tỉ lệ cân): mã quên nhập số con không làm sai bình quân.
+       Mọi mã đều có số con thì netCon = net1, kết quả y như cũ. */
+    var netCon=gross&gt;0?Math.max(0,grossCon-tare*grossCon/gross):0;
+    return{id:g.id,name:g.name,price:g.price||0,haoPct:g.haoPct||0,gross:gross,tare:tare,tareDesc:ti.desc,tareMode:ti.mode,biSum:biSum,net1:net1,hao:hao,truCon:truCon,truKg:truKg,net:net,con:con,nMa:nMa,nBi:nBi,money:money,netCon:netCon,nNoCon:con&gt;0?nNoCon:0,avg:con&gt;0?R10(netCon/con):0};
   });
-  var t={groups:gs,gross:0,tare:0,net1:0,net:0,con:0,nMa:0,goods:0};
-  gs.forEach(function(g){t.gross+=g.gross;t.tare+=g.tare;t.net1+=g.net1;t.net+=g.net;t.con+=g.con;t.nMa+=g.nMa;t.goods+=g.money});
-  t.avg=t.con&gt;0?R10(t.net1/t.con):0;
+  var t={groups:gs,gross:0,tare:0,net1:0,net:0,con:0,nMa:0,goods:0,netCon:0};
+  gs.forEach(function(g){t.gross+=g.gross;t.tare+=g.tare;t.net1+=g.net1;t.net+=g.net;t.con+=g.con;t.nMa+=g.nMa;t.goods+=g.money;t.netCon+=g.netCon});
+  t.avg=t.con&gt;0?R10(t.netCon/t.con):0;
   t.goodsR=roundStep(t.goods,rm);
   t.fee=st.fee||0;t.oldDebt=st.oldDebt||0;t.deposit=st.deposit||0;t.paid=st.paid||0;
   t.due=t.goodsR+t.fee+t.oldDebt-t.deposit;
@@ -1233,6 +1239,15 @@ function outliers(st){
     es.forEach(function(e){var x=val(e);if(x&lt;m*0.65||x&gt;m*1.5)out[e.id]=1});
   });
   return out;
+}
+/* Số con có vẻ sai so với số cân của mã này? Trả về gam/con nếu đáng ngờ, 0 nếu ổn.
+   Đã có các mã trước (cùng loại, có số con): lệch quá 2 lần so với mức giữa. Chưa có mã nào: ngoài khoảng 0,3–15 kg/con. */
+function conOdd(st,gid,w,con){
+  if(!(con&gt;0)||!(w&gt;0))return 0;
+  var r=w/con,ref=[];
+  st.entries.forEach(function(e){if(e.gid===gid&amp;&amp;e.kind!==&#x27;b&#x27;&amp;&amp;e.con&gt;0)ref.push(e.w/e.con)});
+  if(ref.length){ref.sort(function(a,b){return a-b});var m=ref[Math.floor(ref.length/2)];return(r&lt;m*0.5||r&gt;m*2)?r:0}
+  return(r&lt;300||r&gt;15000)?r:0;
 }
 /* chia mã cân thành các cột, mỗi cột 5 mã */
 function toCols(list){var c=[];for(var i=0;i&lt;list.length;i+=5)c.push(list.slice(i,i+5));return c}
@@ -1269,13 +1284,13 @@ function billText(st,cfg,c){
       var s=0;col.forEach(function(e){s+=e.w});
       L.push(&#x27;Cột &#x27;+(i+1)+&#x27;: &#x27;+col.map(function(e){return fmtKg(e.w)}).join(&#x27; + &#x27;)+&#x27; = &#x27;+fmtKg(s))});
     if(g.tareMode===&#x27;can&#x27;&amp;&amp;g.nBi)L.push(&#x27;Bì rỗng: &#x27;+st.entries.filter(function(e){return e.gid===g.id&amp;&amp;e.kind===&#x27;b&#x27;}).map(function(e){return fmtKg(e.w)}).join(&#x27; + &#x27;)+&#x27; = &#x27;+fmtKg(g.biSum));
-    L.push(&#x27;Số mã: &#x27;+g.nMa+(g.con?&#x27; | Số con: &#x27;+fmtInt(g.con):&#x27;&#x27;));
+    L.push(&#x27;Số mã: &#x27;+g.nMa+(g.con?&#x27; | Số con: &#x27;+fmtInt(g.con)+(g.nNoCon?&#x27; (&#x27;+g.nNoCon+&#x27; mã chưa có số con)&#x27;:&#x27;&#x27;):&#x27;&#x27;));
     L.push(&#x27;Tổng cân: &#x27;+fmtKg(g.gross)+&#x27; kg&#x27;);
     if(g.tare)L.push(&#x27;Trừ bì (&#x27;+g.tareDesc+&#x27;): -&#x27;+fmtKg(g.tare)+&#x27; kg&#x27;);
     if(g.hao)L.push(&#x27;Trừ hao &#x27;+String(g.haoPct).replace(&#x27;.&#x27;,&#x27;,&#x27;)+&#x27;%: -&#x27;+fmtKg(g.hao)+&#x27; kg&#x27;);
     if(g.truCon)L.push(&#x27;Trừ theo con: -&#x27;+fmtKg(g.truCon)+&#x27; kg&#x27;);
     if(g.truKg)L.push(&#x27;Trừ thêm: -&#x27;+fmtKg(g.truKg)+&#x27; kg&#x27;);
-    L.push(&#x27;Kg tính tiền: &#x27;+fmtKg(g.net)+&#x27; kg&#x27;+(g.avg?&#x27; (bình quân &#x27;+fmtKg(g.avg)+&#x27; kg/con)&#x27;:&#x27;&#x27;));
+    L.push(&#x27;Kg tính tiền: &#x27;+fmtKg(g.net)+&#x27; kg&#x27;+(g.avg?&#x27; (bình quân &#x27;+fmtKg(g.avg)+&#x27; kg/con&#x27;+(g.nNoCon?&#x27;, tính trên &#x27;+(g.nMa-g.nNoCon)+&#x27;/&#x27;+g.nMa+&#x27; mã có số con&#x27;:&#x27;&#x27;)+&#x27;)&#x27;:&#x27;&#x27;));
     L.push(&#x27;Thành tiền: &#x27;+fmtD(g.money));
   });
   L.push(&#x27;&#x27;);
@@ -1334,12 +1349,19 @@ AutoCap.prototype.feed=function(w,t,flag){
 /* ===CORE-END=== */
 
 /* ---------- môi trường ---------- */
-var EMBED=false;try{EMBED=window.parent!==window&amp;&amp;typeof window.parent.closeCanGa===&#x27;function&#x27;}catch(e){EMBED=false}
-var SA=!!window.CANGA_STANDALONE||EMBED, mem={};
+var CG_VER=&#x27;2026-11-13-CG2&#x27;;
+/* nhận biết đang nằm trong app quy trình bằng chính thẻ khung chứa — không phụ thuộc trang chính đã chạy xong script hay chưa */
+var EMBED=false;try{EMBED=window.parent!==window&amp;&amp;!!window.frameElement&amp;&amp;window.frameElement.id===&#x27;canGaFrame&#x27;}catch(e){EMBED=false}
+var SA=!!window.CANGA_STANDALONE||EMBED, mem={}, RAW={}, FAIL={};
+/* khung cân có đang mở trên màn hình không (bản chạy riêng: luôn tính là mở) */
+function isOpen(){if(!EMBED)return true;try{var m=window.frameElement.parentNode;return !!m&amp;&amp;/(^|\s)on(\s|$)/.test(m.className||&#x27;&#x27;)}catch(e){return true}}
 /* khi nằm trong app quy trình: xin Bluetooth / giữ sáng màn hình qua trang chính để không bị chặn quyền trong khung */
 var NAV=navigator;if(EMBED){try{if(window.parent.navigator)NAV=window.parent.navigator}catch(e){NAV=navigator}}
-function lsGet(k){try{var v=localStorage.getItem(k);if(v)return JSON.parse(v)}catch(e){}return mem[k]===undefined?null:mem[k]}
-function lsSet(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+/* RAW = chuỗi đã đọc/ghi gần nhất của từng khoá (để biết nơi khác có ghi bản mới hơn không) · FAIL = khoá đang ghi không được */
+function lsRaw(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsGet(k){var r=lsRaw(k);if(r){try{var v=JSON.parse(r);RAW[k]=r;return v}catch(e){}}return mem[k]===undefined?null:mem[k]}
+function lsSet(k,v){mem[k]=v;var s=JSON.stringify(v);try{localStorage.setItem(k,s);RAW[k]=s;delete FAIL[k]}catch(e){FAIL[k]=1}paintFail()}
+function paintFail(){var el=document.getElementById(&#x27;failBar&#x27;);if(!el)return;var bad=false;for(var k in FAIL)bad=true;el.hidden=!bad}
 var KS=&#x27;canga_v1_state&#x27;,KC=&#x27;canga_v1_cfg&#x27;,KH=&#x27;canga_v1_hist&#x27;;
 var CFG0={shop:&#x27;&#x27;,shopPhone:&#x27;&#x27;,bank:&#x27;&#x27;,defCon:0,autoDec:0,roundKg:10,roundMoney:1,speak:false,wake:true,lastPrice:0,lastDed:null,theme:&#x27;&#x27;,btAuto:true,btMin:1000,btHold:1200,btBaud:9600};
 var cfg=Object.assign({},CFG0,lsGet(KC)||{});
@@ -1347,8 +1369,8 @@ if(!cfg.theme)cfg.theme=EMBED?&#x27;dark&#x27;:&#x27;auto&#x27;;
 function applyTheme(){var r=document.documentElement;if(cfg.theme===&#x27;light&#x27;||cfg.theme===&#x27;dark&#x27;)r.setAttribute(&#x27;data-theme&#x27;,cfg.theme);else if(SA)r.removeAttribute(&#x27;data-theme&#x27;)}
 applyTheme();
 function validState(s){return s&amp;&amp;Array.isArray(s.groups)&amp;&amp;s.groups.length&amp;&amp;Array.isArray(s.entries)&amp;&amp;s.customer}
-var hist=lsGet(KH)||[];if(!Array.isArray(hist))hist=[];
-hist=hist.filter(function(h){return h&amp;&amp;h.id&amp;&amp;validState(h.state)&amp;&amp;h.sum});hist.forEach(function(h){migrate(h.state)});
+function cleanHist(a){a=a.filter(function(h){return h&amp;&amp;h.id&amp;&amp;validState(h.state)&amp;&amp;h.sum});a.forEach(function(h){migrate(h.state)});return a}
+var hist=lsGet(KH);hist=Array.isArray(hist)?cleanHist(hist):[];
 var state=lsGet(KS);
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function newGroup(id,name){var g={id:id,name:name,price:0,haoPct:0,truCon:0,truKg:0,tare:newTare()},d=cfg.lastDed;
@@ -1363,6 +1385,17 @@ function saveState(){lsSet(KS,state)}
 function saveCfg(){lsSet(KC,cfg)}
 function saveHist(){lsSet(KH,hist)}
 function touch(){state.dirty=true;saveState()}
+/* Nơi khác trên cùng máy (app thứ hai, thẻ khác, bản đã cài ra màn hình chính) vừa ghi dữ liệu mới hơn -&gt; lấy về trước,
+   để bản cũ đang nằm trong bộ nhớ không ghi đè lên bản mới. Khoá nào mình đang ghi lỗi thì giữ bản trong bộ nhớ. */
+function syncKey(k){var r=lsRaw(k);if(!r||r===RAW[k]||FAIL[k])return null;try{var v=JSON.parse(r);RAW[k]=r;return v}catch(e){return null}}
+function syncHist(){var v=syncKey(KH);if(Array.isArray(v)){hist=cleanHist(v);return true}return false}
+function syncIn(){
+  var ch=syncHist(),v=syncKey(KC);
+  if(v&amp;&amp;typeof v===&#x27;object&#x27;&amp;&amp;!Array.isArray(v)){cfg=Object.assign({},CFG0,v);if(!cfg.theme)cfg.theme=EMBED?&#x27;dark&#x27;:&#x27;auto&#x27;;applyTheme();ch=true}
+  v=syncKey(KS);
+  if(validState(v)){state=migrate(v);K.c=lastCon();ch=true}
+  return ch;
+}
 function grp(id){for(var i=0;i&lt;state.groups.length;i++)if(state.groups[i].id===id)return state.groups[i];return null}
 /* đàn gà đã lưu bên app quy trình nuôi (chỉ đọc) */
 function loadFlocks(){try{var a=JSON.parse(localStorage.getItem(&#x27;MT_FLOCKS_V1&#x27;)||&#x27;[]&#x27;);return Array.isArray(a)?a.filter(function(f){return f&amp;&amp;f.id&amp;&amp;f.name}):[]}catch(e){return[]}}
@@ -1384,9 +1417,20 @@ function copyText(txt,okMsg){
 function speak(t){if(!cfg.speak)return;try{var u=new SpeechSynthesisUtterance(t);u.lang=&#x27;vi-VN&#x27;;u.rate=1.1;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 var actx=null;
 function beep(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();var o=actx.createOscillator(),g=actx.createGain();o.frequency.value=1250;g.gain.value=.18;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+.13)}catch(e){}}
-var wl=null;
-function wake(){if(!cfg.wake)return;try{if(NAV.wakeLock&amp;&amp;!wl){NAV.wakeLock.request(&#x27;screen&#x27;).then(function(l){wl=l;l.addEventListener(&#x27;release&#x27;,function(){wl=null})},function(){})}}catch(e){}}
-document.addEventListener(&#x27;visibilitychange&#x27;,function(){if(document.visibilityState===&#x27;visible&#x27;)wake()});
+/* giữ sáng màn hình: CHỈ khi khung cân đang mở; đóng khung cân là nhả ngay để không ảnh hưởng app quy trình */
+var wl=null,wlPend=false;
+function wake(){
+  if(!cfg.wake||!isOpen()||wl||wlPend)return;
+  try{if(!NAV.wakeLock)return;wlPend=true;
+    NAV.wakeLock.request(&#x27;screen&#x27;).then(function(l){wlPend=false;
+      if(!cfg.wake||!isOpen()){try{l.release().catch(function(){})}catch(e){}return}
+      wl=l;l.addEventListener(&#x27;release&#x27;,function(){if(wl===l)wl=null})},function(){wlPend=false})}catch(e){wlPend=false}
+}
+function unwake(){try{if(wl){var l=wl;wl=null;l.release().catch(function(){})}}catch(e){}}
+function refreshAll(){if(!$(&#x27;#modal&#x27;).hidden){modalKind=&#x27;&#x27;;confirmCb=null;closeModal()}showTab(curTab)}
+document.addEventListener(&#x27;visibilitychange&#x27;,function(){if(document.visibilityState===&#x27;visible&#x27;){if(syncIn())refreshAll();wake()}});
+window.addEventListener(&#x27;pageshow&#x27;,function(e){if(e.persisted&amp;&amp;syncIn())refreshAll()});
+window.addEventListener(&#x27;storage&#x27;,function(e){if(e.key===null||e.key===KS||e.key===KC||e.key===KH){if(syncIn())refreshAll()}});
 
 /* ---------- CÂN BLUETOOTH / SERIAL ---------- */
 var BLE_SVCS=[0xffe0,0xffe5,0xfff0,0xffb0,0xff00,0xff10,0xffc0,0xffd0,0xfee7,0x181d,&#x27;6e400001-b5a3-f393-e0a9-e50e24dcca9e&#x27;,&#x27;49535343-fe7d-4ae5-8fa9-9fafd205e455&#x27;];
@@ -1399,8 +1443,12 @@ function btReading(r){
   BT.cap.min=cfg.btMin;BT.cap.hold=cfg.btHold;
   var cw=BT.cap.feed(BT.live,now,r.stable);
   BT.stable=BT.cap.steady;
+  if(BT.live&lt;cfg.btMin)BT.oddW=null;
   if(cw!==null){
-    if(cfg.btAuto&amp;&amp;!K.w&amp;&amp;curTab===&#x27;can&#x27;&amp;&amp;$(&#x27;#modal&#x27;).hidden)addEntry(cw,true);
+    /* tự chốt chỉ khi: khung cân đang mở, đang ở thẻ Cân, không gõ dở số cân / số con, không có hộp thoại.
+       Mã vừa bị hỏi lại số con mà người dùng bấm &quot;Không&quot; thì chờ sửa số con, không hỏi lặp lại. */
+    var conNow=parseInt(K.c||&#x27;0&#x27;,10)||0,held=BT.oddW!=null&amp;&amp;BT.oddCon===conNow&amp;&amp;Math.abs(cw-BT.oddW)&lt;=50;
+    if(cfg.btAuto&amp;&amp;!K.w&amp;&amp;K.field===&#x27;w&#x27;&amp;&amp;curTab===&#x27;can&#x27;&amp;&amp;$(&#x27;#modal&#x27;).hidden&amp;&amp;isOpen()&amp;&amp;!held)addEntry(cw,true);
     else BT.cap.armed=true;
   }
   btPaint();
@@ -1490,7 +1538,9 @@ function openBT(){
 }
 
 /* ---------- thẻ CÂN ---------- */
-var K={field:&#x27;w&#x27;,w:&#x27;&#x27;,c:cfg.defCon?String(cfg.defCon):&#x27;&#x27;,kind:&#x27;h&#x27;,gid:state.groups[0].id,hidePad:false,lastId:&#x27;&#x27;};
+/* số con mỗi mã: giữ theo mã cân gần nhất của phiếu đang cân (tải lại trang / mở lại app vẫn còn), chưa có thì lấy số mặc định */
+function lastCon(){if(!state.sample)for(var i=state.entries.length-1;i&gt;=0;i--){var e=state.entries[i];if(e.kind!==&#x27;b&#x27;){if(e.con&gt;0)return String(e.con);break}}return cfg.defCon?String(cfg.defCon):&#x27;&#x27;}
+var K={field:&#x27;w&#x27;,w:&#x27;&#x27;,c:lastCon(),kind:&#x27;h&#x27;,gid:state.groups[0].id,hidePad:false,lastId:&#x27;&#x27;};
 function wGrams(){if(cfg.autoDec){var n=parseInt(K.w||&#x27;0&#x27;,10)||0;return cfg.autoDec===1?n*100:n*10}return parseKg(K.w)}
 function dispW(){if(cfg.autoDec){var n=parseInt(K.w||&#x27;0&#x27;,10)||0;return(n/Math.pow(10,cfg.autoDec)).toFixed(cfg.autoDec).replace(&#x27;.&#x27;,&#x27;,&#x27;)}return K.w||&#x27;0&#x27;}
 function renderScale(){
@@ -1501,31 +1551,46 @@ function renderScale(){
   var base=K.kind===&#x27;b&#x27;?&#x27;Cân bì rỗng&#x27;:&#x27;Mã cân thứ &#x27;+n;
   $(&#x27;#lblW&#x27;).textContent=liveMode?base+&#x27; · &#x27;+(lv===null?&#x27;chờ cân gửi số…&#x27;:(BT.stable?&#x27;ĐỨNG SỐ&#x27;:&#x27;đang dao động&#x27;)):base;
   sc.className=&#x27;scale&#x27;+(liveMode&amp;&amp;lv!==null&amp;&amp;BT.stable?&#x27; steady&#x27;:&#x27;&#x27;);
-  $(&#x27;#addLbl&#x27;).textContent=liveMode?&#x27;CHỐT MÃ&#x27;:&#x27;CỘNG MÃ&#x27;;
+  var conMode=K.field===&#x27;c&#x27;&amp;&amp;K.kind!==&#x27;b&#x27;;
+  $(&#x27;#addIco&#x27;).textContent=conMode?&#x27;✓&#x27;:&#x27;+&#x27;;
+  $(&#x27;#addLbl&#x27;).textContent=conMode?&#x27;XONG SỐ CON&#x27;:(liveMode?&#x27;CHỐT MÃ&#x27;:&#x27;CỘNG MÃ&#x27;);
   $(&#x27;#fW&#x27;).setAttribute(&#x27;aria-pressed&#x27;,K.field===&#x27;w&#x27;?&#x27;true&#x27;:&#x27;false&#x27;);$(&#x27;#fC&#x27;).setAttribute(&#x27;aria-pressed&#x27;,K.field===&#x27;c&#x27;?&#x27;true&#x27;:&#x27;false&#x27;);
 }
 function press(k){
   wake();
-  if(k===&#x27;add&#x27;)return addEntry();
+  /* đang sửa ô Số con: nút đỏ là &quot;XONG SỐ CON&quot; — quay về ô số cân, chưa cộng mã */
+  if(k===&#x27;add&#x27;){if(K.field===&#x27;c&#x27;&amp;&amp;K.kind!==&#x27;b&#x27;){K.field=&#x27;w&#x27;;K.fresh=false;renderScale();return}return addEntry()}
   if(k===&#x27;undo&#x27;)return undoLast();
   var f=K.field,b=K[f];
+  /* ô Số con đang giữ số của các mã trước: vừa chạm vào ô rồi bấm chữ số thì THAY số cũ (không nối thêm thành 2018) */
+  var fresh=f===&#x27;c&#x27;&amp;&amp;K.fresh;if(k!==&#x27;,&#x27;)K.fresh=false;
   if(k===&#x27;bs&#x27;)b=b.slice(0,-1);
   else if(k===&#x27;,&#x27;){if(f===&#x27;c&#x27;||(f===&#x27;w&#x27;&amp;&amp;cfg.autoDec))return;if(b.indexOf(&#x27;,&#x27;)&gt;=0)return;b=(b||&#x27;0&#x27;)+&#x27;,&#x27;}
   else{
-    if(f===&#x27;c&#x27;){if(b.length&gt;=4)return;b=(b===&#x27;0&#x27;?&#x27;&#x27;:b)+k}
+    if(f===&#x27;c&#x27;){if(fresh)b=&#x27;&#x27;;if(b.length&gt;=4)return;b=(b===&#x27;0&#x27;?&#x27;&#x27;:b)+k}
     else if(f===&#x27;w&#x27;&amp;&amp;cfg.autoDec){b=b.replace(/^0+/,&#x27;&#x27;);if(b.length&gt;=6)return;b=b+k}
     else{var p=b.split(&#x27;,&#x27;);if(p.length&gt;1){if(p[1].length&gt;=2)return}else if(p[0].length&gt;=4&amp;&amp;b!==&#x27;0&#x27;)return;b=(b===&#x27;0&#x27;?&#x27;&#x27;:b)+k}
   }
   K[f]=b;renderScale();
 }
-function addEntry(wAuto,auto){
+function addEntry(wAuto,auto,force){
   var w,fromLive=false;
   if(auto)w=wAuto;
+  else if(force===&#x27;live&#x27;){w=wAuto;fromLive=true}   /* số trên cân đã được người dùng xác nhận ở hộp hỏi lại */
   else if(K.w)w=wGrams();
   else if(BT.on){w=btLive();fromLive=true;if(w===null){toast(&#x27;Cân chưa gửi số về&#x27;);return}}
   else w=0;
   if(!(w&gt;0)){toast(fromLive?&#x27;Trên cân chưa có hàng&#x27;:&#x27;Bấm số kg trước rồi mới cộng&#x27;);return}
   var con=K.kind===&#x27;b&#x27;?0:(parseInt(K.c||&#x27;0&#x27;,10)||0);
+  /* số con trông sai so với số cân (bấm nhầm 2018 con, quên đổi số con cho lồng lẻ…): hỏi lại trước khi cộng */
+  if(!force&amp;&amp;K.kind!==&#x27;b&#x27;){
+    var odd=conOdd(state.sample?{entries:[]}:state,K.gid,w,con);
+    if(odd){
+      if(auto){BT.oddW=w;BT.oddCon=con;if(BT.cap)BT.cap.armed=true}
+      confirmBox(&#x27;Mã này &#x27;+fmtKg(w)+&#x27; kg mà ghi &#x27;+con+&#x27; con, tức &#x27;+fmtKg(R10(odd))+&#x27; kg mỗi con. Số con có đúng không?&#x27;,&#x27;Đúng, vẫn cộng&#x27;,function(){addEntry(w,auto,fromLive?&#x27;live&#x27;:true)});
+      return;
+    }
+  }
   if(state.sample){state=newState();K.gid=state.groups[0].id}
   if(!grp(K.gid))K.gid=state.groups[0].id;
   var g=grp(K.gid);
@@ -1533,7 +1598,8 @@ function addEntry(wAuto,auto){
   var e={id:uid(),gid:K.gid,kind:K.kind,w:w,con:con,at:Date.now()};
   state.entries.push(e);K.lastId=e.id;
   if(!auto){K.w=&#x27;&#x27;;K.field=&#x27;w&#x27;}
-  if(fromLive&amp;&amp;BT.cap)BT.cap.armed=false;
+  if((auto||fromLive)&amp;&amp;BT.cap)BT.cap.armed=false;
+  BT.oddW=null;
   touch();renderCan();
   var ls=$(&#x27;#list&#x27;);ls.scrollTop=ls.scrollHeight;
   try{if(navigator.vibrate)navigator.vibrate(25)}catch(er){}
@@ -1575,7 +1641,7 @@ function renderCan(){
   var fl=&#x27;&#x27;;if(state.flock&amp;&amp;state.flock.count){var rem=state.flock.count-c.con;fl=&#x27; · đàn &#x27;+fmtInt(state.flock.count)+&#x27; con, &#x27;+(rem&gt;=0?&#x27;còn &#x27;+fmtInt(rem):&#x27;cân dư &#x27;+fmtInt(-rem))}
   var h=&#x27;&#x27;;
   if(hs.length||bs.length){
-    h+=&#x27;&lt;div class=&quot;lgh&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27;+esc(g.name)+&#x27;&lt;/b&gt; · &#x27;+cg.nMa+&#x27; mã&#x27;+(cg.con?&#x27; · &#x27;+fmtInt(cg.con)+&#x27; con · &#x27;+fmtKg(cg.avg)+&#x27; kg/con&#x27;:&#x27;&#x27;)+esc(fl)+&#x27;&lt;/span&gt;&lt;span&gt;chạm vào số để sửa&lt;/span&gt;&lt;/div&gt;&#x27;;
+    h+=&#x27;&lt;div class=&quot;lgh&quot;&gt;&lt;span&gt;&lt;b&gt;&#x27;+esc(g.name)+&#x27;&lt;/b&gt; · &#x27;+cg.nMa+&#x27; mã&#x27;+(cg.con?&#x27; · &#x27;+fmtInt(cg.con)+&#x27; con · &#x27;+fmtKg(cg.avg)+&#x27; kg/con&#x27;+(cg.nNoCon?&#x27; · ⚠ &#x27;+cg.nNoCon+&#x27; mã chưa có số con&#x27;:&#x27;&#x27;):&#x27;&#x27;)+esc(fl)+&#x27;&lt;/span&gt;&lt;span&gt;chạm vào số để sửa&lt;/span&gt;&lt;/div&gt;&#x27;;
     if(hs.length)h+=ledgerHTML(hs,{btn:true,flags:out,last:K.lastId});
     if(bs.length)h+=&#x27;&lt;div class=&quot;lgh&quot;&gt;&lt;span&gt;&lt;b&gt;Bì rỗng đã cân&lt;/b&gt; · &#x27;+bs.length+&#x27; lần = &#x27;+fmtKg(cg.biSum)+&#x27; kg&#x27;+(g.tare.mode!==&#x27;can&#x27;?&#x27; (đang KHÔNG tính vì chọn cách trừ bì khác)&#x27;:&#x27;&#x27;)+&#x27;&lt;/span&gt;&lt;/div&gt;&#x27;+ledgerHTML(bs,{btn:true,bi:true,last:K.lastId});
   }else h=&#x27;&lt;div class=&quot;empty&quot;&gt;Bấm số kg rồi bấm &lt;b&gt;CỘNG MÃ&lt;/b&gt;. Sổ cân tự chia cột, mỗi cột 5 mã và có cộng cột để đối chiếu với lái.&lt;br&gt;Bấm nút &lt;b&gt;&#x27;+esc(dedShort(g,cg))+&#x27;&lt;/b&gt; để chọn cách trừ bì.&lt;/div&gt;&#x27;;
@@ -1684,7 +1750,7 @@ function groupLines(g,noMoney){
   if(g.hao)h+=ln(&#x27;Trừ hao &#x27;+String(g.haoPct).replace(&#x27;.&#x27;,&#x27;,&#x27;)+&#x27;%&#x27;,&#x27;−&#x27;+fmtKg(g.hao)+&#x27; kg&#x27;);
   if(g.truCon)h+=ln(&#x27;Trừ theo con&#x27;,&#x27;−&#x27;+fmtKg(g.truCon)+&#x27; kg&#x27;);
   if(g.truKg)h+=ln(&#x27;Trừ thêm&#x27;,&#x27;−&#x27;+fmtKg(g.truKg)+&#x27; kg&#x27;);
-  h+=ln(&#x27;Kg tính tiền&#x27;+(g.avg?&#x27; · &#x27;+fmtKg(g.avg)+&#x27; kg/con&#x27;:&#x27;&#x27;),fmtKg(g.net)+&#x27; kg&#x27;,noMoney?&#x27;tot&#x27;:&#x27;&#x27;);
+  h+=ln(&#x27;Kg tính tiền&#x27;+(g.avg?&#x27; · &#x27;+fmtKg(g.avg)+&#x27; kg/con&#x27;+(g.nNoCon?&#x27; (tính trên &#x27;+(g.nMa-g.nNoCon)+&#x27;/&#x27;+g.nMa+&#x27; mã có số con)&#x27;:&#x27;&#x27;):&#x27;&#x27;),fmtKg(g.net)+&#x27; kg&#x27;,noMoney?&#x27;tot&#x27;:&#x27;&#x27;);
   if(!noMoney)h+=ln(&#x27;Thành tiền (&#x27;+fmtKg(g.net)+&#x27; × &#x27;+fmtInt(g.price)+&#x27;)&#x27;,fmtD(g.money),&#x27;tot&#x27;);
   return h;
 }
@@ -1745,13 +1811,16 @@ function saveBill(){
   if(!state.entries.length){toast(&#x27;Chưa có mã cân nào để lưu&#x27;);return false}
   var c=compute(state,cfg);state.dirty=false;
   var rec={id:state.id,savedAt:Date.now(),state:JSON.parse(JSON.stringify(state)),sum:{kg:c.net,con:c.con,goods:c.goodsR,due:c.due,paid:c.paid,remain:c.remain}};
+  syncHist();
   var i=-1;hist.forEach(function(h,j){if(h.id===state.id)i=j});
   if(i&gt;=0)hist[i]=rec;else hist.push(rec);
   var g=state.groups[0];if(g.price)cfg.lastPrice=g.price;
   cfg.lastDed={tare:{mode:g.tare.mode,perMa:g.tare.perMa,kgLong:g.tare.kgLong},haoPct:g.haoPct,truCon:g.truCon};saveCfg();
-  saveHist();saveState();toast(&#x27;Đã lưu phiếu vào sổ&#x27;);return true;
+  saveHist();saveState();
+  if(FAIL[KH]){toast(&#x27;⚠ KHÔNG lưu được phiếu vào máy. Hãy sao lưu ngay.&#x27;);return false}
+  toast(&#x27;Đã lưu phiếu vào sổ&#x27;);return true;
 }
-function resetK(){K.w=&#x27;&#x27;;K.kind=&#x27;h&#x27;;K.field=&#x27;w&#x27;;K.gid=state.groups[0].id;K.c=cfg.defCon?String(cfg.defCon):&#x27;&#x27;;K.lastId=&#x27;&#x27;}
+function resetK(){K.w=&#x27;&#x27;;K.kind=&#x27;h&#x27;;K.field=&#x27;w&#x27;;K.gid=state.groups[0].id;K.c=lastCon();K.lastId=&#x27;&#x27;}
 function newBill(){
   function go(){state=newState();resetK();saveState();showTab(&#x27;can&#x27;)}
   if(!state.sample&amp;&amp;state.dirty&amp;&amp;state.entries.length)confirmBox(&#x27;Phiếu đang cân chưa lưu. Bỏ và mở phiếu mới?&#x27;,&#x27;Bỏ, mở phiếu mới&#x27;,go);else go();
@@ -1759,6 +1828,7 @@ function newBill(){
 
 /* ---------- thẻ SỔ ---------- */
 function renderSo(){
+  syncHist();
   var now=new Date(),d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime(),w0=d0-6*864e5,m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();
   function agg(from){var a={n:0,kg:0,goods:0};hist.forEach(function(h){if(h.state.createdAt&gt;=from){a.n++;a.kg+=h.sum.kg;a.goods+=h.sum.goods}});return a}
   var a=agg(d0),b=agg(w0),m=agg(m0),debt=0,seen={};
@@ -1805,9 +1875,10 @@ function renderCai(){
    &#x27;&lt;details&gt;&lt;summary&gt;Sổ cân chia cột 5 mã để đối chiếu với lái&lt;/summary&gt;&lt;p&gt;Mỗi cột có đúng 5 mã cân theo thứ tự từ trên xuống, số nhỏ ở góc là số thứ tự mã. Dòng cuối mỗi cột là &lt;b&gt;cộng cột&lt;/b&gt;. Khi lái đọc sổ của họ, hai bên chỉ cần so cộng từng cột; cột nào lệch thì dò 5 số trong cột đó.&lt;/p&gt;&lt;p&gt;Bấm &lt;b&gt;Ẩn phím&lt;/b&gt; để xem được nhiều cột hơn. Chạm vào một số để sửa hoặc xoá. Số màu cam là mã nặng nhẹ khác thường, nên xem lại.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Chọn cách trừ bì (nằm chung một chỗ)&lt;/summary&gt;&lt;p&gt;Ở thẻ Cân bấm nút màu vàng &lt;b&gt;Bì… ▸&lt;/b&gt; (hoặc nút &lt;b&gt;Cách trừ bì&lt;/b&gt; ở thẻ Tính tiền). Chọn 1 trong 5 cách:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;b&gt;Không trừ bì&lt;/b&gt;.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Trừ theo mã cân&lt;/b&gt;: mỗi mã trừ bao nhiêu kg, máy tự nhân với số mã.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Trừ theo số lồng&lt;/b&gt;: số lồng × kg mỗi lồng.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Cân bì rỗng thực tế&lt;/b&gt;: bấm “Cân bì rỗng ngay”, cân các lồng rỗng, xong bấm “Xong, cân gà tiếp”.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Nhập thẳng tổng kg bì&lt;/b&gt;.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Cũng trong bảng đó có &lt;b&gt;Trừ hao %&lt;/b&gt;, &lt;b&gt;Trừ gam/con&lt;/b&gt; và &lt;b&gt;Trừ thêm kg&lt;/b&gt;. Kết quả hiện ngay bên dưới để hai bên cùng xem. Cách trừ bì được nhớ cho phiếu sau.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Kết nối cân Bluetooth&lt;/summary&gt;&lt;p&gt;Bấm &lt;b&gt;Cân Bluetooth&lt;/b&gt; ở thẻ Cân, rồi &lt;b&gt;Kết nối cân Bluetooth&lt;/b&gt; và chọn tên cân. Nếu không thấy số nhảy, thử &lt;b&gt;Kết nối kiểu Serial&lt;/b&gt; (cân Bluetooth đời cũ phải ghép đôi trong Cài đặt điện thoại trước).&lt;/p&gt;&lt;p&gt;Khi đã nối: mặt cân trong app hiện đúng số trên cân. Cân &lt;b&gt;đứng số&lt;/b&gt; thì app tự chốt thành một mã và kêu bíp, phải nhấc lồng ra thì mới chốt mã kế. Tắt “Tự chốt” nếu muốn tự bấm &lt;b&gt;CHỐT MÃ&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Cần Chrome trên Android hoặc máy tính; iPhone không hỗ trợ. Muốn xem thử trước khi có cân: bấm &lt;b&gt;Chạy thử bằng cân giả lập&lt;/b&gt;. Nếu cân lạ không ra số, mở mục &lt;b&gt;Dữ liệu thô&lt;/b&gt;, sao chép và gửi cho người làm app để chỉnh.&lt;/p&gt;&lt;/details&gt;&#x27;+
-   &#x27;&lt;details&gt;&lt;summary&gt;Số con&lt;/summary&gt;&lt;p&gt;Chạm ô &lt;b&gt;Số con / mã&lt;/b&gt; trên mặt cân rồi bấm số. Số này được giữ cho các mã sau, chỉ sửa khi lồng khác đi. App dùng số con để tính kg bình quân mỗi con.&lt;/p&gt;&lt;/details&gt;&#x27;+
+   &#x27;&lt;details&gt;&lt;summary&gt;Số con&lt;/summary&gt;&lt;p&gt;Chạm ô &lt;b&gt;Số con / mã&lt;/b&gt; trên mặt cân, bấm số, rồi bấm nút đỏ &lt;b&gt;XONG SỐ CON&lt;/b&gt; để quay lại bấm số cân. Số này được giữ cho các mã sau (mở lại app vẫn còn), chỉ sửa khi lồng khác đi. Chạm vào ô rồi bấm số mới là số cũ được thay luôn.&lt;/p&gt;&lt;p&gt;App dùng số con để tính kg bình quân mỗi con. Nếu số con trông sai so với số cân (ví dụ bấm nhầm thành 2018 con, hoặc lồng lẻ ít con mà quên đổi) app sẽ &lt;b&gt;hỏi lại&lt;/b&gt; trước khi cộng. Mã nào chưa có số con thì phiếu ghi rõ, bình quân chỉ tính trên các mã có số con.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Bán nhiều loại gà khác giá&lt;/summary&gt;&lt;p&gt;Ở thẻ Tính tiền bấm &lt;b&gt;Thêm loại gà khác giá&lt;/b&gt;. Quay lại thẻ Cân sẽ có các nút chọn loại, chọn loại nào thì mã cân vào sổ của loại đó. Mỗi loại có cách trừ bì riêng.&lt;/p&gt;&lt;/details&gt;&#x27;+
    &#x27;&lt;details&gt;&lt;summary&gt;Nợ cũ, công nợ và đàn gà&lt;/summary&gt;&lt;p&gt;Gõ đúng tên khách đã từng lưu phiếu, máy tự nhắc số còn nợ ở phiếu trước để cộng vào. Thẻ &lt;b&gt;Sổ&lt;/b&gt; cho biết doanh số hôm nay, 7 ngày, tháng này và tổng khách đang nợ.&lt;/p&gt;&lt;p&gt;Nếu đã lưu đàn gà bên quy trình nuôi, ở thẻ Tính tiền chọn &lt;b&gt;Bán từ đàn&lt;/b&gt; để phiếu ghi tên đàn, ngày tuổi, và thẻ Cân báo còn bao nhiêu con chưa cân.&lt;/p&gt;&lt;/details&gt;&lt;/div&gt;&#x27;;
+  h+=&#x27;&lt;div class=&quot;hint&quot; id=&quot;cgVer&quot;&gt;Phiên bản Cân Gà Pro: &#x27;+CG_VER+&#x27;&lt;/div&gt;&#x27;;
   $(&#x27;#tab-cai&#x27;).innerHTML=h;
 }
 function backupData(){return JSON.stringify({app:&#x27;canga&#x27;,v:2,at:Date.now(),cfg:cfg,hist:hist,state:state})}
@@ -1833,6 +1904,7 @@ $(&#x27;#pad&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.targe
 $(&#x27;#scale&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;button&#x27;);if(!b)return;var f=b.dataset.field;
   if(K.kind===&#x27;b&#x27;&amp;&amp;f===&#x27;c&#x27;){toast(&#x27;Cân bì rỗng không cần số con&#x27;);return}
   if(K.field===f&amp;&amp;f===&#x27;c&#x27;)K.c=&#x27;&#x27;;
+  K.fresh=f===&#x27;c&#x27;;
   if(f===&#x27;w&#x27;&amp;&amp;K.field===&#x27;w&#x27;&amp;&amp;BT.on&amp;&amp;K.w)K.w=&#x27;&#x27;;
   K.field=f;renderScale()});
 $(&#x27;#chips&#x27;).addEventListener(&#x27;click&#x27;,function(e){var b=e.target.closest(&#x27;button&#x27;);if(!b)return;
@@ -1848,7 +1920,7 @@ document.addEventListener(&#x27;keydown&#x27;,function(e){
   if(curTab!==&#x27;can&#x27;||!$(&#x27;#modal&#x27;).hidden)return;var k=e.key;
   if(/^[0-9]$/.test(k))press(k);else if(k===&#x27;,&#x27;||k===&#x27;.&#x27;)press(&#x27;,&#x27;);else if(k===&#x27;Backspace&#x27;)press(&#x27;bs&#x27;);else if(k===&#x27;Enter&#x27;||k===&#x27;+&#x27;){e.preventDefault();press(&#x27;add&#x27;)}
 });
-setInterval(function(){if(BT.on){btPaint()}},1000);
+setInterval(function(){if(wl&amp;&amp;!isOpen())unwake();if(BT.on){btPaint()}},1000);
 
 $(&#x27;#modal&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   if(e.target.id===&#x27;modal&#x27;){closeModal();return}
@@ -1864,7 +1936,7 @@ $(&#x27;#modal&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   else if(m===&#x27;btsim&#x27;)btSim();
   else if(m===&#x27;btcopy&#x27;)copyText(BT.log.join(&#x27;\n&#x27;)||&#x27;(chưa có dữ liệu)&#x27;,&#x27;Đã sao chép dữ liệu thô&#x27;);
   else if(m===&#x27;hcopy&#x27;){var r=hist.filter(function(x){return x.id===id})[0];if(r)copyText(billText(r.state,cfg,compute(r.state,cfg)),&#x27;Đã sao chép phiếu&#x27;)}
-  else if(m===&#x27;hdel&#x27;){confirmBox(&#x27;Xoá hẳn phiếu này khỏi sổ?&#x27;,&#x27;Xoá phiếu&#x27;,function(){hist=hist.filter(function(x){return x.id!==id});saveHist();renderSo()})}
+  else if(m===&#x27;hdel&#x27;){confirmBox(&#x27;Xoá hẳn phiếu này khỏi sổ?&#x27;,&#x27;Xoá phiếu&#x27;,function(){syncHist();hist=hist.filter(function(x){return x.id!==id});saveHist();renderSo()})}
   else if(m===&#x27;hedit&#x27;){var r2=hist.filter(function(x){return x.id===id})[0];if(!r2)return;
     var go=function(){state=JSON.parse(JSON.stringify(r2.state));state.dirty=false;state.sample=false;resetK();saveState();showTab(&#x27;can&#x27;)};
     if(!state.sample&amp;&amp;state.dirty&amp;&amp;state.entries.length&amp;&amp;state.id!==id)confirmBox(&#x27;Phiếu đang cân chưa lưu. Bỏ để mở phiếu cũ?&#x27;,&#x27;Bỏ, mở phiếu cũ&#x27;,go);else{closeModal();go()}}
@@ -1931,7 +2003,7 @@ $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;change&#x27;,function(e){
   else if(k===&#x27;defCon&#x27;){cfg.defCon=Math.min(parseMoney(t.value),9999);K.c=cfg.defCon?String(cfg.defCon):&#x27;&#x27;}
   else if(k===&#x27;autoDec&#x27;||k===&#x27;roundKg&#x27;||k===&#x27;roundMoney&#x27;){cfg[k]=parseInt(t.value,10)||0;if(k===&#x27;autoDec&#x27;)K.w=&#x27;&#x27;}
   else cfg[k]=t.value;
-  saveCfg();if(k===&#x27;theme&#x27;)applyTheme();if(k===&#x27;wake&#x27;&amp;&amp;cfg.wake)wake();toast(&#x27;Đã lưu cài đặt&#x27;);
+  saveCfg();if(k===&#x27;theme&#x27;)applyTheme();if(k===&#x27;wake&#x27;){if(cfg.wake)wake();else unwake()}toast(&#x27;Đã lưu cài đặt&#x27;);
 });
 $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   var b=e.target.closest(&#x27;[data-act]&#x27;);if(!b)return;var a=b.dataset.act;
@@ -1940,8 +2012,9 @@ $(&#x27;#tab-cai&#x27;).addEventListener(&#x27;click&#x27;,function(e){
   else if(a===&#x27;bkfile&#x27;){try{var d=new Date(),u=URL.createObjectURL(new Blob([backupData()],{type:&#x27;application/json&#x27;})),l=document.createElement(&#x27;a&#x27;);l.href=u;l.download=&#x27;canga-saoluu-&#x27;+d.getFullYear()+&#x27;-&#x27;+(d.getMonth()+1)+&#x27;-&#x27;+d.getDate()+&#x27;.json&#x27;;document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000)}catch(er){copyText(backupData())}}
   else if(a===&#x27;bkrestore&#x27;){var v=$(&#x27;#bk-text&#x27;).value.trim();if(!v){toast(&#x27;Dán dữ liệu sao lưu vào ô trước&#x27;);return}restoreData(v)}
 });
-/* app quy trình nuôi gọi mỗi lần mở khung cân */
-window.cangaOnOpen=function(){wake();showTab(curTab)};
+/* app quy trình nuôi gọi mỗi lần mở / đóng khung cân */
+window.cangaOnOpen=function(){if(syncIn()&amp;&amp;!$(&#x27;#modal&#x27;).hidden){modalKind=&#x27;&#x27;;confirmCb=null;closeModal()}wake();showTab(curTab)};
+window.cangaOnClose=function(){unwake()};
 $(&#x27;#btnClose&#x27;).hidden=!EMBED;
 showTab(&#x27;can&#x27;);
 &lt;/script&gt;
@@ -1953,14 +2026,19 @@ showTab(&#x27;can&#x27;);
 function openCanGa(){
   var m=document.getElementById("canGaMask");if(!m||m.className==="on")return;
   m.className="on";
-  window.__cgOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow="hidden";
+  /* đang cân: không cuộn trang nền, không "kéo xuống để tải lại trang" — đóng khung cân là trả lại y như cũ */
+  var de=document.documentElement,b=document.body;
+  window.__cgSave={o:de.style.overflow,x:de.style.overscrollBehavior,y:b?b.style.overscrollBehavior:""};
+  de.style.overflow="hidden";de.style.overscrollBehavior="none";if(b)b.style.overscrollBehavior="none";
   try{history.pushState({canga:1},"");}catch(e){}
   try{var w=document.getElementById("canGaFrame").contentWindow;if(w&&typeof w.cangaOnOpen==="function")w.cangaOnOpen();}catch(e){}
 }
 function closeCanGa(fromBack){
   var m=document.getElementById("canGaMask");if(!m||m.className!=="on")return;
   m.className="";
-  document.documentElement.style.overflow=window.__cgOverflow||"";
+  var s=window.__cgSave||{},de=document.documentElement,b=document.body;
+  de.style.overflow=s.o||"";de.style.overscrollBehavior=s.x||"";if(b)b.style.overscrollBehavior=s.y||"";
+  try{var w=document.getElementById("canGaFrame").contentWindow;if(w&&typeof w.cangaOnClose==="function")w.cangaOnClose();}catch(e){}
   if(fromBack!==true){try{if(history.state&&history.state.canga)history.back();}catch(e){}}
 }
 window.addEventListener("popstate",function(){closeCanGa(true);});
