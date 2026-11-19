@@ -4062,7 +4062,7 @@ var NLC = (function(){
 })();
 
 /* ---------- [NL1] GIAO DIỆN + THÔNG BÁO ĐẨY ---------- */
-var NL_VER   = '2026-11-19-NL2';
+var NL_VER   = '2026-11-19-NL3';
 /* [NL2] Kho "firebase-messaging-database" trong trình duyệt là CHUNG cả tên miền github.io (Sổ Nợ, Quản Trị, Gà Nòi…):
    Firebase 12.x (app Quản Trị) nâng kho lên bản 2; Firebase 10.12.0 (Sổ Nợ, Gà Nòi NL1) chỉ mở được bản 1
    ⇒ máy đã mở Quản Trị thì báo "The requested version (1) is less than the existing version (2)".
@@ -4255,12 +4255,13 @@ function chuTT(){
 
 /* ═════════ BẢNG ⚙ THÔNG BÁO ═════════ */
 var HUONG_DAN = '<p><b>Báo cái gì?</b> Mỗi đàn đã lưu (ngày vào gà + số con) có 1 thông báo mỗi tối: ngày mai Sáng làm gì, Chiều làm gì. <b>Ngày đầu của một đợt</b> có kèm <b>liều 1 ngày</b>, tính y như Máy tính liều PRO (số con × cân nặng chuẩn của ngày đó). Ngày 2, 3… của đợt chỉ nhắc tên — bạn tự tính.</p>'
-  + '<p><b>Đổi số con / ngày vào gà:</b> sửa đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU — app tự gửi lịch mới lên máy chủ (cần có mạng). Xoá đàn là thôi báo đàn đó.</p>'
+  + '<p><b>Thêm đàn / đổi số con / đổi ngày vào gà / xoá đàn:</b> làm ở mục 🐔 ĐÀN GÀ ĐÃ LƯU — vài giây sau app tự gửi lịch mới lên máy chủ (cần có mạng; mất mạng thì khi có mạng lại hoặc mở lại app sẽ tự gửi). Sửa <b>sau</b> giờ báo của tối đó thì tin tối đó đã gửi theo số cũ — từ tối hôm sau theo số mới (khung NGÀY MAI LÀM GÌ đổi ngay).</p>'
+  + '<p><b>App có bản mới (đổi lịch 120 ngày, đổi liều…):</b> mở app 1 lần khi có mạng là app tự gửi lịch mới. Máy nào chưa mở thì thông báo có thêm dòng ⚠ nhắc mở app.</p>'
   + '<p><b>Android:</b> mở app bằng Chrome (hoặc app đã cài ra màn hình chính) → 🔔 BẬT THÔNG BÁO → Cho phép.</p>'
   + '<p><b>iPhone / iPad:</b> mở bằng Safari → nút Chia sẻ ⬆️ → “Thêm vào MH chính”, rồi mở app từ biểu tượng đó mới bật được (iOS 16.4 trở lên).</p>'
   + '<p><b>Thử:</b> bấm 📲 GỬI THỬ → có thông báo 1/2 ngay → tắt hẳn app → khoảng 20 giây sau có thông báo 2/2. Có đủ 2 cái là máy đã nhận được.</p>'
   + '<p><b>Không thấy báo:</b> Cài đặt điện thoại → Ứng dụng → Chrome (hoặc ' + esc(TEN_APP) + ') → Thông báo: bật. Tắt chế độ tiết kiệm / tối ưu pin cho Chrome. Lúc tới giờ máy phải có mạng — mất mạng thì có mạng lại sẽ nhận (trễ nhất 6 giờ sáng hôm sau).</p>'
-  + '<p><b>Thỉnh thoảng mở app khi có mạng</b> để lịch trên máy chủ luôn theo bản mới nhất của app.</p>';
+  + '<p><b>Không cần mở app mỗi ngày:</b> máy chủ đã giữ lịch cả đợt nuôi, tối nào cũng tự báo.</p>';
 var mask = null;
 function dungBang(){
   if(mask && D.body.contains(mask)) return mask;
@@ -4325,6 +4326,7 @@ function veXemTruoc(){
   if(!S_ || !W_){ el.innerHTML = ''; el._nl = ''; return; }
   if(!ds.length){ el.innerHTML = '<div class="nl-nho">Chưa có đàn nào — lưu đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU.</div>'; el._nl = ''; return; }
   var hn = NLC.nuaDem(new Date()), keys = []; for(i = 0; i < 7; i++) keys.push(NLC.ymd(NLC.cong(hn, i)));
+  var bayGio = new Date(), daQua = (bayGio.getHours() * 60 + bayGio.getMinutes()) > st.gio * 60;   /* [NL3] giờ báo tối nay đã qua */
   for(i = 0; i < ds.length; i++){
     var f = ds[i], L = [];
     try{ L = NLC.soanDan(S_, W_, IT, f, cf).filter(function(e){ return keys.indexOf(e.ngay) >= 0; }); }catch(e){ L = []; }
@@ -4332,7 +4334,7 @@ function veXemTruoc(){
     if(!L.length) html += '<div class="nl-nho">Không có lịch trong 7 ngày tới.</div>';
     for(j = 0; j < L.length; j++){
       var e = L[j], p = e.ngay.split('-'), toi = new Date(+p[0], +p[1] - 1, +p[2]), mai = NLC.cong(toi, 1);
-      html += '<div class="nl-xi"><div class="nl-xg">TỐI ' + (e.ngay === keys[0] ? 'NAY' : esc(NLC.thu(toi)).toUpperCase()) + ', ' + NLC.ddmm(toi) + ' · ' + hai(st.gio) + ':00 → MAI N' + e.N + ' (' + esc(NLC.thu(mai)) + ', ' + NLC.ddmm(mai) + ')</div>'
+      html += '<div class="nl-xi"><div class="nl-xg">TỐI ' + (e.ngay === keys[0] ? 'NAY' : esc(NLC.thu(toi)).toUpperCase()) + ', ' + NLC.ddmm(toi) + ' · ' + hai(st.gio) + ':00' + ((e.ngay === keys[0] && daQua) ? ' (đã qua)' : '') + ' → MAI N' + e.N + ' (' + esc(NLC.thu(mai)) + ', ' + NLC.ddmm(mai) + ')</div>'
         + '<div class="nl-xb">' + e.b.split('\n').map(dongHTML).join('') + '</div></div>';
     }
   }
@@ -4460,14 +4462,24 @@ function goiMayChu(than){
 }
 
 /* ───────── soạn lịch gửi lên ───────── */
+/* [NL3] Dấu BẢN APP đang chạy = giờ sửa tệp index.html trên GitHub (Last-Modified của chính trang này), dạng "v<giây base36>".
+   Gắn vào đuôi tag mỗi tin ⇒ nhaclich-sw.js lúc nhận tin hỏi GitHub: tệp đã mới hơn ⇒ app có bản mới (vd đổi lịch 120 ngày)
+   mà máy này chưa mở ⇒ thêm dòng ⚠ nhắc mở app. Trang không có Last-Modified (trình duyệt trả giờ hiện tại) ⇒ không gắn. */
+function dauBan(){
+  try{
+    var t = Date.parse(D.lastModified);
+    if(!isFinite(t) || t < 1700000000000 || Math.abs(Date.now() - t) < 15000) return '';
+    return 'v' + Math.floor(t / 1000).toString(36);
+  }catch(e){ return ''; }
+}
 function bam(s){ var h = 0x811c9dc5, i; for(i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0; } return h.toString(36) + '.' + s.length.toString(36); }
 function soanLich(IT){
-  var S_ = lichS(), W_ = canW(), cf = cauHinh(), ds = dsDan(), tron = {}, dan = [], i, j;
+  var S_ = lichS(), W_ = canW(), cf = cauHinh(), ds = dsDan(), tron = {}, dan = [], i, j, dv = dauBan();
   for(i = 0; i < ds.length; i++){
     var f = ds[i], L = NLC.soanDan(S_, W_, IT, f, cf);
     if(!L.length) continue;
     dan.push({ ten: String(f.name || 'Đàn').slice(0, 40), so: parseInt(f.count, 10) || 0, vao: f.hatch });
-    for(j = 0; j < L.length; j++){ var e = L[j]; (tron[e.ngay] = tron[e.ngay] || []).push({ t: e.t, b: e.b, g: e.g }); }
+    for(j = 0; j < L.length; j++){ var e = L[j]; (tron[e.ngay] = tron[e.ngay] || []).push({ t: e.t, b: e.b, g: (dv && e.g && e.g.length + dv.length < 80) ? e.g + '-' + dv : e.g }); }
   }
   return { tron: tron, dan: dan };
 }
@@ -4601,7 +4613,8 @@ function khoiDong(){
     if(D.hidden) return;
     var k = NLC.ymd(new Date()); if(k !== _homNay){ _homNay = k; }
     ve();
-    if(st.bat && (Date.now() - (st.kiem || 0)) > KIEM_LAI) dongBo('mo');
+    /* [NL3] còn lỗi chưa gửi được (vd sửa đàn lúc mất mạng, lượt thử lại rơi vào lúc app nằm nền) ⇒ quay lại app là gửi lại ngay */
+    if(st.bat && (st.loi || (Date.now() - (st.kiem || 0)) > KIEM_LAI)) dongBo('mo');
   });
   Wn.addEventListener('online', function(){ if(st.bat && st.loi) dongBo('co-mang'); });
   Wn.addEventListener('popstate', function(){ dongBang(true); });
