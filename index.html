@@ -3827,5 +3827,769 @@ if (standalone()){ hideBar(); }
 })();
 </script>
 
+<!-- ===== [NL1] NHẮC LỊCH TRƯỚC 1 NGÀY · PHẦN THÊM (không sửa lịch S, cân nặng W, liều, đàn gà, máy tính liều, Cân Gà) =====
+     • Khung 🔔 NGÀY MAI LÀM GÌ (ngay dưới ĐÀN GÀ ĐÃ LƯU): việc ngày mai của từng đàn, ngày đầu mỗi đợt kèm liều 1 ngày.
+     • Bảng ⚙ THÔNG BÁO: bật / tắt, giờ báo (mặc định 18:00 tối hôm trước), gửi thử, xem trước 7 ngày, cách dùng.
+     • Báo cả khi đã TẮT HẲN app: máy chủ "nhaclich" (Cloud Functions so-no-cc57a) + tệp nhaclich-sw.js đặt CẠNH index.html.
+     • Liều lấy từ chính bảng thuốc của Máy tính liều PRO (khung calcProFrame): đổi liều ở máy tính thì thông báo đổi theo.
+     • Chỉ bọc saveFlocksArr để biết đàn vừa đổi. Khối này lỗi thì app chạy y như cũ. ===== -->
+<style>
+/* ===== [NL1] NHẮC LỊCH TRƯỚC 1 NGÀY · PHẦN THÊM ===== */
+.nl-box{background:#13131C;border:2px solid #2a2a38;border-radius:14px;padding:12px;margin-bottom:14px;transition:border-color .3s,box-shadow .3s}
+.nl-box.nl-sang{border-color:#FF8C00;box-shadow:0 0 18px #FF8C0066}
+.nl-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.nl-ttl{font-size:12px;color:#FF8C00;font-weight:800;letter-spacing:1.5px}
+.nl-cai{background:#FF8C0022;border:1px solid #FF8C00;color:#FF8C00;font-weight:800;font-size:11px;letter-spacing:.5px;padding:7px 11px;border-radius:9px;white-space:nowrap;display:inline-flex;align-items:center}
+.nl-cai:active{transform:scale(.96)}
+.nl-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-left:7px}
+.nl-dot.on{background:#22C55E;box-shadow:0 0 6px #22C55E}
+.nl-dot.loi{background:#EF4444}
+.nl-list{display:flex;flex-direction:column;gap:8px}
+.nl-card{background:#0A0A0F;border:1.5px solid #2a2a38;border-left:4px solid #FF8C00;border-radius:11px;padding:9px 11px;cursor:pointer}
+.nl-card:active{transform:scale(.99)}
+.nl-card.nl-mo{cursor:default;opacity:.75}
+.nl-cn{font-size:14px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nl-cs{font-size:10.5px;font-weight:800;letter-spacing:.6px;margin:3px 0 5px}
+.nl-l{font-size:12.5px;color:#d6d6de;line-height:1.5;word-break:break-word}
+.nl-ld{color:#79c0ff;font-weight:900}
+.nl-nho{font-size:11px;color:#8a8a96}
+.nl-xem{font-size:10px;color:#666;margin-top:5px;text-align:right}
+.nl-empty{font-size:11.5px;color:#777;line-height:1.6}
+.nl-moi{margin-top:10px;padding:9px 10px;border:1px dashed #FF8C00;border-radius:10px;font-size:11.5px;color:#FFB347;line-height:1.55;display:flex;gap:8px;align-items:center}
+.nl-moi span{flex:1;min-width:0}
+.nl-moi button{flex:0 0 auto;background:linear-gradient(145deg,#FF8C00,#FF4500);border:0;color:#fff;font-weight:900;font-size:12px;padding:8px 12px;border-radius:9px}
+.nl-mask{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10002;background:rgba(0,0,0,.82);padding:14px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.nl-mask.on{display:flex;align-items:flex-start;justify-content:center}
+.nl-pn{width:100%;max-width:440px;margin:auto;background:#13131C;border:2px solid #FF8C00;border-radius:16px;padding:16px}
+.nl-ph{font-size:14px;font-weight:900;color:#FF8C00;letter-spacing:1px;margin-bottom:6px}
+.nl-psub{font-size:11.5px;color:#9a9aa6;line-height:1.6;margin-bottom:10px}
+.nl-tt{white-space:pre-line;font-size:12px;line-height:1.6;color:#e6e6ee;background:#0A0A0F;border:1px solid #2a2a38;border-radius:10px;padding:9px 10px;margin-bottom:10px;word-break:break-word}
+.nl-b{width:100%;padding:12px;border-radius:10px;font-size:13px;font-weight:900;letter-spacing:.5px;border:0;color:#fff}
+.nl-b1{background:linear-gradient(145deg,#FF8C00,#FF4500);margin-bottom:10px}
+.nl-b1.on{background:#0f2a18;border:1px solid #22C55E;color:#5be08a}
+.nl-b2{background:#13131C;border:1px solid #58a6ff;color:#79c0ff}
+.nl-b3{background:#13131C;border:1px solid #444;color:#9a9aa6}
+.nl-b:disabled{opacity:.45}
+.nl-b:active{transform:scale(.98)}
+.nl-r2{display:flex;gap:8px;margin-bottom:12px}
+.nl-gr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.nl-gr label{font-size:10.5px;color:#888;font-weight:800;letter-spacing:.8px}
+.nl-sel{background:#0A0A0F;color:#fff;border:1.5px solid #444;border-radius:9px;padding:9px 10px;font-size:14px;font-weight:800}
+.nl-sec{font-size:10.5px;color:#FFB347;font-weight:800;letter-spacing:1px;margin:4px 0 8px}
+.nl-xt{max-height:44vh;overflow-y:auto;border:1px solid #222;border-radius:10px;padding:8px 10px;background:#0A0A0F;margin-bottom:10px}
+.nl-xd{font-size:12px;font-weight:800;color:#fff;margin:4px 0 4px}
+.nl-xi{border-top:1px dashed #2a2a38;padding:6px 0}
+.nl-xg{font-size:10px;color:#FF8C00;font-weight:800;letter-spacing:.4px;margin-bottom:2px}
+.nl-xb .nl-l{font-size:11.5px}
+.nl-hdan{margin:6px 0 10px;font-size:12px;color:#cfcfd6}
+.nl-hdan summary{cursor:pointer;color:#79c0ff;font-weight:800;padding:6px 0}
+.nl-hd-in p{margin:6px 0;line-height:1.6}
+.nl-ver{font-size:9.5px;color:#555;text-align:right;margin-bottom:8px}
+.nl-ok{width:100%;padding:12px;border:0;border-radius:10px;background:#2a2a38;color:#fff;font-weight:900;font-size:13px}
+</style>
+<script>
+(function(){
+"use strict";
+if(window.__NL_READY__) return; window.__NL_READY__ = true;
+try{
+/* ---------- [NL1] LÕI SOẠN NỘI DUNG (thuần: chỉ đọc lịch S, cân nặng W, thuốc của máy tính liều) ---------- */
+var NLC = (function(){
+  'use strict';
+  var THU = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+
+  function nfc(s){ s = String(s == null ? '' : s); try{ return s.normalize('NFC'); }catch(e){ return s; } }
+  function hoa(s){ return nfc(s).trim().toUpperCase().replace(/\s+/g, ' '); }
+  /* y hệt fmt() của máy tính liều — số trong thông báo khớp từng nét với máy tính */
+  function fmt(v){ if(!v || v === 0) return '—'; if(v < 0.1) return v.toFixed(3); if(v < 10) return v.toFixed(2); if(v < 100) return v.toFixed(1); return Math.round(v).toString(); }
+  function r3(v){ return Math.round(v * 1000) / 1000; }
+  function gon(v){ return String(r3(v)); }
+
+  /* "MT7 (2/3)" → {goc:"MT7", k:2, n:3} */
+  function tachVi(m){
+    var s = nfc(m).trim(), r = /\((\d+)\s*\/\s*(\d+)\)\s*$/.exec(s);
+    return { goc: s.replace(/\s*\(\d+\s*\/\s*\d+\)\s*$/, '').trim(), k: r ? +r[1] : 0, n: r ? +r[2] : 0 };
+  }
+  function laVac(t){ var x = hoa(t); return x.indexOf('💉') >= 0 || /(^|[^A-ZÀ-Ỹ])VAC([^A-ZÀ-Ỹ]|$)/.test(x); }
+  function laNuoc(t){ var x = hoa(t); return !x || x === '—' || x === '-' || x === '–' || x.indexOf('NƯỚC SẠCH') >= 0; }
+  /* "MT8+MT9+MT11" → [{c:"MT8"},…] · "MT16 GIỮ ĂN" → [{c:"MT16", muc:"GIỮ ĂN"}] */
+  function tachThuoc(goc){
+    if(laVac(goc) || laNuoc(goc)) return [];
+    var out = [], ps = nfc(goc).split('+');
+    for(var i = 0; i < ps.length; i++){
+      var r = /^\s*(MT\d+)\s*(.*)$/i.exec(ps[i]);
+      if(r) out.push({ c: r[1].toUpperCase(), muc: hoa(r[2]) });
+    }
+    return out;
+  }
+  function bangNgay(S){ var m = {}, max = 0; for(var i = 0; i < (S ? S.length : 0); i++){ var x = S[i]; if(x && x.d > 0){ m[x.d] = x; if(x.d > max) max = x.d; } } m.__max = max; return m; }
+  function bangThuoc(IT){ var m = { __n: 0 }; if(IT && IT.length) for(var i = 0; i < IT.length; i++){ var it = IT[i]; if(it && it.c && !m[it.c]){ m[it.c] = it; m.__n++; } } return m; }
+
+  /* ĐỢT buổi SÁNG: (k/n) theo lịch; không ghi (k/n) thì các ngày liền nhau cùng một việc là một đợt */
+  function dotSang(M, N){
+    var x = M[N]; if(!x) return null;
+    var v = tachVi(x.m), p = M[N - 1] ? tachVi(M[N - 1].m) : null, bd, vi, dai, dau, cuoi, q;
+    if(v.k){
+      bd = (v.k === 1) || !(p && p.goc === v.goc && p.k === v.k - 1);
+      vi = v.k; dai = Math.max(v.n, v.k); dau = N - (v.k - 1); cuoi = dau + dai - 1;
+    }else{
+      bd = !(p && !p.k && p.goc === v.goc);
+      dau = N; while(M[dau - 1]){ q = tachVi(M[dau - 1].m); if(!q.k && q.goc === v.goc) dau--; else break; }
+      cuoi = N; while(M[cuoi + 1]){ q = tachVi(M[cuoi + 1].m); if(!q.k && q.goc === v.goc) cuoi++; else break; }
+      vi = N - dau + 1; dai = cuoi - dau + 1;
+    }
+    return { goc: v.goc, bd: bd, vi: vi, dai: dai, dau: dau, cuoi: cuoi, vac: laVac(v.goc), thuoc: tachThuoc(v.goc) };
+  }
+  /* Buổi CHIỀU: thuốc nào khác hôm trước = bắt đầu */
+  function dotChieu(M, N){
+    var x = M[N]; if(!x) return null;
+    var e = nfc(x.e).trim(), p = M[N - 1] ? nfc(M[N - 1].e).trim() : null, nuoc = laNuoc(e);
+    return { goc: e, nuoc: nuoc, bd: !nuoc && !(p != null && hoa(p) === hoa(e)), thuoc: tachThuoc(e) };
+  }
+
+  /* Số con × cân nặng chuẩn ngày đó → tổng kg + cám/ngày (làm tròn y như máy tính liều) */
+  function coSo(W, N, so, cf){
+    var w = W ? W[N] : null; if(!(w > 0) || !(so > 0)) return null;
+    cf = cf || {};
+    var split = cf.KG_SPLIT > 0 ? cf.KG_SPLIT : 0.9, py = cf.PCT_YOUNG > 0 ? cf.PCT_YOUNG : 0.075, po = cf.PCT_OLD > 0 ? cf.PCT_OLD : 0.06;
+    var pct = (r3(w) <= split + 1e-9) ? py : po, t = so * w;
+    return { kgCon: w, kg: r3(t), cam: r3(t * pct), pct: pct };
+  }
+  /* "10–12 ml/kg cám" → [10,12] · "12 ml/kg cám" → [12,12] */
+  function soGhiChu(n){
+    var r = /(\d+(?:[.,]\d+)?)\s*(?:[–\-]\s*(\d+(?:[.,]\d+)?))?\s*ml\s*\/\s*kg/i.exec(nfc(n));
+    if(!r) return null;
+    var a = parseFloat(r[1].replace(',', '.')), b = r[2] != null ? parseFloat(r[2].replace(',', '.')) : a;
+    return (a > 0 && b >= a) ? [a, b] : null;
+  }
+  /* Liều 1 ngày của 1 mã — đúng công thức máy tính liều PRO (tp: wt · tab · fg · feed · tap · combo · multi) */
+  function lieu(it, muc, cs, ghiChu){
+    if(!it || !cs) return null;
+    var u = it.u || '', kg = cs.kg, cam = cs.cam, i, a;
+    switch(it.tp){
+      case 'wt':  return it.d > 0 ? { txt: fmt(kg * it.d) + ' ' + u } : null;
+      case 'tab': return it.d > 0 ? { txt: Math.ceil(kg / it.d) + ' ' + u } : null;
+      case 'fg':  return it.d > 0 ? { txt: fmt(cam * it.d) + ' ' + u, cam: true } : null;
+      case 'feed': return it.d > 0 ? { txt: fmt((cam * 0.4) * it.d) + ' ' + u, cam: true, tron: r3(cam * 0.4) } : null;
+      case 'tap': return (it.ds && it.ds[0]) ? { txt: fmt(kg * it.ds[0][0]) + '–' + fmt(kg * it.ds[0][1]) + ' ' + u } : null;
+      case 'combo':
+        if(!it.parts || !it.parts.length) return null;
+        for(a = [], i = 0; i < it.parts.length; i++) a.push(it.parts[i].n + ' ' + fmt(kg * it.parts[i].d) + ' ' + u);
+        return { txt: a.join(' + ') };
+      case 'multi':
+        if(!it.multi) return null;
+        var theoCam = (it.base === 'feed'), goc = theoCam ? (cam * 0.4) : kg, m = null, gc = theoCam ? soGhiChu(ghiChu) : null, d1, d2;
+        for(i = 0; i < it.multi.length; i++) if(hoa(it.multi[i].tag) === muc){ m = it.multi[i]; break; }
+        if(m){
+          d1 = d2 = m.d;
+          /* MT16: ngày nào lịch ghi số khác máy tính thì theo số ghi trong lịch của ngày đó */
+          if(gc){ if(gc[0] === gc[1]){ if(gc[0] !== m.d) d1 = d2 = gc[0]; } else if(m.d < gc[0] || m.d > gc[1]){ d1 = gc[0]; d2 = gc[1]; } }
+        }else if(gc){ d1 = gc[0]; d2 = gc[1]; }
+        else return null;
+        return { txt: (d1 === d2 ? fmt(goc * d1) : fmt(goc * d1) + '–' + fmt(goc * d2)) + ' ' + u, cam: theoCam, tron: theoCam ? r3(goc) : 0 };
+    }
+    return null;
+  }
+  function lieuNhom(T, ds, cs, ghiChu, dung){
+    var a = [], i, L, d, it;
+    for(i = 0; i < ds.length; i++){
+      d = ds[i]; it = T ? T[d.c] : null; L = lieu(it, d.muc, cs, ghiChu);
+      if(L){ dung.lieu = true; if(L.cam) dung.cam = true; if(L.tron && !dung.tron) dung.tron = L.tron; }
+      a.push({ ma: d.c + (d.muc ? ' ' + d.muc : ''), txt: L ? L.txt : '' });
+    }
+    if(a.length === 1) return a[0].txt ? a[0].txt + (dung.tron && T[ds[0].c] && (T[ds[0].c].base === 'feed' || T[ds[0].c].tp === 'feed') ? ' (trộn vào ' + gon(dung.tron) + ' kg cám)' : '') : '';
+    var co = false; for(i = 0; i < a.length; i++) if(a[i].txt) co = true;
+    if(!co) return '';
+    return a.map(function(x){ return x.ma + ' ' + (x.txt || '(xem máy tính liều)'); }).join(' · ');
+  }
+
+  function nuaDem(h){ var a = new Date(h); if(isNaN(a.getTime())) return null; a.setHours(0, 0, 0, 0); return a; }
+  function cong(a, n){ var b = new Date(a.getTime()); b.setDate(b.getDate() + n); b.setHours(0, 0, 0, 0); return b; }
+  function hai(n){ return (n < 10 ? '0' : '') + n; }
+  function ymd(d){ return d.getFullYear() + '-' + hai(d.getMonth() + 1) + '-' + hai(d.getDate()); }
+  function ddmm(d){ return hai(d.getDate()) + '/' + hai(d.getMonth() + 1); }
+  function thu(d){ return THU[d.getDay()]; }
+
+  /* Một ngày N của một đàn → {N, tieuDe, dong[], coLieu, t (loại màu)} */
+  function soanNgay(ctx, N, ngayN){
+    var x = ctx.M[N]; if(!x) return null;
+    var s = dotSang(ctx.M, N), c = dotChieu(ctx.M, N), cs = coSo(ctx.W, N, ctx.so, ctx.cf);
+    var T = ctx.T, coBang = !!(T && T.__n > 0), dung = { lieu: false, cam: false, tron: 0 }, ls = '', lc = '', dong = [], sang;
+    if(coBang && s.thuoc.length && s.bd) ls = lieuNhom(T, s.thuoc, cs, x.n, dung);
+    var dungC = { lieu: false, cam: false, tron: 0 };
+    if(coBang && c.thuoc.length && (c.bd || s.bd)) lc = lieuNhom(T, c.thuoc, cs, x.n, dungC);
+    if(s.vac || !s.thuoc.length) sang = s.goc;
+    else if(s.bd && s.vi === 1) sang = s.goc + (s.dai > 1 ? ' · bắt đầu đợt ' + s.dai + ' ngày (N' + s.dau + '–' + s.cuoi + ')' : ' · 1 ngày');
+    else sang = s.goc + ' · ngày ' + s.vi + '/' + s.dai + (s.vi >= s.dai ? ' (cuối đợt)' : ' (tiếp tục)');
+    dong.push('☀ Sáng: ' + sang + (ls ? ' → ' + ls : ''));
+    dong.push('🌙 Chiều: ' + (c.nuoc ? 'nước sạch' : c.goc + (lc ? ' → ' + lc : '')));
+    var n = nfc(x.n).trim();
+    if(n && (s.bd || /⚠|🏁/.test(n))) dong.push('📝 ' + n);
+    if((ls || lc) && cs) dong.push('⚖ ' + ctx.so + ' con × ' + cs.kgCon.toFixed(3) + ' kg = ' + gon(cs.kg) + ' kg' + ((dung.cam || dungC.cam) ? ' · cám ' + gon(cs.cam) + ' kg/ngày' : ''));
+    var td = '🐔 ' + ctx.ten + ' · Mai N' + N + (ngayN ? ' (' + thu(ngayN) + ', ' + ddmm(ngayN) + ')' : '');
+    return { N: N, tieuDe: td, dong: dong, coLieu: !!(ls || lc), t: x.t, bd: s.bd };
+  }
+  function maSach(s){ return String(s == null ? '' : s).replace(/[^A-Za-z0-9_\-]/g, '').slice(0, 40) || 'dan'; }
+  function ctxDan(S_, W_, IT, f, cf){
+    return { M: (S_ && S_.__max) ? S_ : bangNgay(S_), W: W_, T: (IT && IT.__n != null) ? IT : bangThuoc(IT), so: parseInt(f && f.count, 10) || 0, ten: String((f && f.name) || 'Đàn').trim() || 'Đàn', cf: cf };
+  }
+  /* Cả lịch của một đàn: mỗi ngày N → 1 tin, gửi vào TỐI HÔM TRƯỚC (ngày N−1) */
+  function soanDan(S_, W_, IT, f, cf){
+    var h0 = nuaDem(f && f.hatch); if(!h0) return [];
+    var ctx = ctxDan(S_, W_, IT, f, cf); if(!(ctx.so > 0)) return [];
+    var out = [], id = maSach(f.id);
+    for(var N = 1; N <= ctx.M.__max; N++){
+      if(!ctx.M[N]) continue;
+      var ngN = cong(h0, N), d = soanNgay(ctx, N, ngN); if(!d) continue;
+      out.push({ ngay: ymd(cong(h0, N - 1)), N: N, t: d.tieuDe, b: d.dong.join('\n'), g: 'nl-' + id + '-' + N });
+    }
+    return out;
+  }
+  /* Ngày mai của một đàn (cho băng trong app) */
+  function ngayMai(S_, W_, IT, f, cf, homNay){
+    var h0 = nuaDem(f && f.hatch); if(!h0) return null;
+    var hn = homNay ? new Date(homNay.getTime()) : new Date(); hn.setHours(0, 0, 0, 0);
+    var tuoi = Math.round((hn - h0) / 86400000), N = tuoi + 1, ctx = ctxDan(S_, W_, IT, f, cf);
+    if(N < 1) return { N: N, tuoi: tuoi, chuaVao: true };
+    if(N > ctx.M.__max) return { N: N, tuoi: tuoi, het: true };
+    var ngN = cong(h0, N), d = soanNgay(ctx, N, ngN);
+    if(!d) return null;
+    d.tuoi = tuoi; d.ngay = ngN; d.thu = thu(ngN); d.ddmm = ddmm(ngN); d.so = ctx.so;
+    return d;
+  }
+  return { soanDan: soanDan, ngayMai: ngayMai, soanNgay: soanNgay, ctxDan: ctxDan, bangNgay: bangNgay, bangThuoc: bangThuoc,
+           dotSang: dotSang, dotChieu: dotChieu, coSo: coSo, lieu: lieu, soGhiChu: soGhiChu, fmt: fmt, ymd: ymd, ddmm: ddmm, thu: thu,
+           nuaDem: nuaDem, cong: cong, tachThuoc: tachThuoc, tachVi: tachVi };
+})();
+
+/* ---------- [NL1] GIAO DIỆN + THÔNG BÁO ĐẨY ---------- */
+var NL_VER   = '2026-11-19-NL1';
+var FB       = 'https://www.gstatic.com/firebasejs/10.12.0/';
+/* Cấu hình Firebase lấy từ MÁY CHỦ (app web riêng "Ga Noi Nhac Lich" do CAI-DAT.bat tạo).
+   KHÔNG dùng mã app của Sổ Nợ / Quản Trị: thư viện Firebase cất mã nhận thông báo trong trình duyệt THEO MÃ APP,
+   cùng tên miền github.io mà dùng chung mã app thì mỗi lần app này xin mã sẽ HUỶ mã của Sổ Nợ (mất chuông đơn). */
+var MA_SONO  = '1:571694791559:web:8e409728a520e2d370b122';
+var URL_DK   = 'https://asia-southeast1-so-no-cc57a.cloudfunctions.net/nlDangKy';   /* máy chủ "nhaclich" */
+var SW_FILE  = 'nhaclich-sw.js';     /* tệp đặt CẠNH index.html */
+var SW_DIR   = 'nhaclich/';          /* phạm vi riêng ⇒ không đụng sw.js */
+var KEY      = 'nl_v1';              /* {bat, gio, may, token, hash, luc, kiem, loi, so, soDan, web} */
+var KEY_DAN  = 'MT_FLOCKS_V1';       /* đàn gà đã lưu (của app — chỉ đọc) */
+var GIO_MD   = 18;                   /* giờ báo mặc định: 18:00 tối hôm trước */
+var GIO_TU = 5, GIO_DEN = 22;
+var KIEM_LAI = 6 * 3600000;          /* mở app: tối đa 6 giờ dò mã máy 1 lần */
+var GUI_LAI  = 7 * 86400000;         /* 7 ngày gửi lại lịch 1 lần dù không đổi gì */
+
+var D = document, Wn = window, NAV = navigator;
+function $(i){ return D.getElementById(i); }
+function hai(n){ return (n < 10 ? '0' : '') + n; }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function loi(m){ var e = new Error(m); e.nl = true; return e; }
+function noi(m){ try{ if(typeof Wn.mtToast === 'function') Wn.mtToast(m); }catch(e){} }
+
+var TEN_APP = (function(){ try{ var m = D.querySelector('meta[name="apple-mobile-web-app-title"]'); return (m && m.getAttribute('content')) || 'Gà Nòi'; }catch(e){ return 'Gà Nòi'; } })();
+var LOAI_APP = /QTC/i.test(TEN_APP) ? 'qtc' : 'qt';
+var HERE = location.origin + location.pathname, DIR = HERE.replace(/[^\/]*$/, ''), FILE = HERE.slice(DIR.length);
+var APP_URL = (FILE === '' || FILE === 'index.html') ? DIR : HERE, URL_MO = APP_URL + '#nhaclich';
+
+/* ───────── trạng thái trên máy (dùng chung QT + QTC cùng máy ⇒ 1 máy chỉ nhận 1 lần) ───────── */
+function taoMa(){
+  var c = 'abcdefghijklmnopqrstuvwxyz0123456789', s = '', a = null, i;
+  try{ a = Wn.crypto.getRandomValues(new Uint8Array(24)); }catch(e){ a = null; }
+  for(i = 0; i < 24; i++) s += c.charAt((a ? a[i] : Math.floor(Math.random() * 256)) % 36);
+  return s;
+}
+function docSt(){
+  var s = null; try{ s = JSON.parse(localStorage.getItem(KEY) || 'null'); }catch(e){ s = null; }
+  if(!s || typeof s !== 'object') s = {};
+  s.gio = parseInt(s.gio, 10); if(!(s.gio >= GIO_TU && s.gio <= GIO_DEN)) s.gio = GIO_MD;
+  if(!/^[a-z0-9]{12,40}$/.test(s.may || '')) s.may = taoMa();
+  return s;
+}
+var st = docSt();
+function luuSt(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
+luuSt();
+
+/* ───────── máy / trình duyệt ───────── */
+function coTB(){ try{ return ('Notification' in Wn); }catch(e){ return false; } }
+function quyen(){ try{ return coTB() ? Notification.permission : 'none'; }catch(e){ return 'none'; } }
+function anToan(){ return location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'; }
+function hoTroDay(){ try{ return ('serviceWorker' in NAV) && ('PushManager' in Wn) && coTB() && anToan(); }catch(e){ return false; } }
+function laIOS(){ try{ return /iPad|iPhone|iPod/.test(NAV.userAgent) || (NAV.platform === 'MacIntel' && NAV.maxTouchPoints > 1); }catch(e){ return false; } }
+function laMH(){ try{ return (Wn.matchMedia && Wn.matchMedia('(display-mode: standalone)').matches) || NAV.standalone === true; }catch(e){ return false; } }
+
+/* ───────── dữ liệu của app (CHỈ ĐỌC) ───────── */
+function dsDan(){
+  var a = [];
+  try{ a = (typeof Wn.loadFlocks === 'function') ? Wn.loadFlocks() : JSON.parse(localStorage.getItem(KEY_DAN) || '[]'); }catch(e){ a = []; }
+  if(!Array.isArray(a)) a = [];
+  return a.filter(function(f){ return f && f.id && f.hatch; });
+}
+function lichS(){ try{ return (typeof S !== 'undefined' && S && S.length) ? S : null; }catch(e){ return null; } }
+function canW(){ try{ return (typeof W !== 'undefined' && W) ? W : null; }catch(e){ return null; } }
+function mau(t){ try{ return (typeof TC !== 'undefined' && TC && TC[t] && TC[t].c) ? TC[t].c : '#FF8C00'; }catch(e){ return '#FF8C00'; } }
+function khung(){ try{ var f = $('calcProFrame'); return (f && f.contentWindow) || null; }catch(e){ return null; } }
+function bangThuoc(){ try{ var w = khung(); if(w && w.ITEMS && w.ITEMS.length) return w.ITEMS; }catch(e){} return null; }
+function cauHinh(){ var w = khung(), c = {}; try{ if(w){ c.KG_SPLIT = w.KG_SPLIT; c.PCT_YOUNG = w.PCT_YOUNG; c.PCT_OLD = w.PCT_OLD; } }catch(e){} return c; }
+function choBang(ms){
+  return new Promise(function(ok){
+    var t0 = Date.now();
+    (function lap(){ var it = bangThuoc(); if(it || Date.now() - t0 >= ms) ok(it); else setTimeout(lap, 250); })();
+  });
+}
+
+/* ═════════ KHUNG 🔔 NGÀY MAI LÀM GÌ (ngay dưới ĐÀN GÀ ĐÃ LƯU) ═════════ */
+var hop = null;
+function dungHop(){
+  if(hop && D.body.contains(hop)) return hop;
+  var fb = D.querySelector('.flock-box'); if(!fb || !fb.parentNode) return null;
+  hop = D.createElement('div'); hop.id = 'nlBox'; hop.className = 'nl-box';
+  hop.innerHTML = '<div class="nl-hd"><span class="nl-ttl">🔔 NGÀY MAI LÀM GÌ</span>'
+    + '<button type="button" class="nl-cai" data-nl="cai">⚙ THÔNG BÁO<span class="nl-dot" id="nlDot"></span></button></div>'
+    + '<div id="nlList" class="nl-list"></div><div id="nlMoi" class="nl-moi" style="display:none"></div>';
+  fb.parentNode.insertBefore(hop, fb.nextSibling);
+  hop.addEventListener('click', function(ev){
+    var t = ev.target && ev.target.closest ? ev.target.closest('[data-nl]') : null; if(!t) return;
+    var a = t.getAttribute('data-nl');
+    if(a === 'cai') moBang();
+    else if(a === 'bat'){ moBang(); bat(); }
+    else if(a === 'xem') xemMai(t.getAttribute('data-id'), parseInt(t.getAttribute('data-n'), 10));
+  });
+  return hop;
+}
+function dongHTML(s){
+  var nho = /^(📝|⚖)/.test(s), i = s.indexOf(' → ');
+  var noi_ = i < 0 ? esc(s) : esc(s.slice(0, i)) + ' → <b class="nl-ld">' + esc(s.slice(i + 3)) + '</b>';
+  return '<div class="nl-l' + (nho ? ' nl-nho' : '') + '">' + noi_ + '</div>';
+}
+function veBang(){
+  var h = dungHop(); if(!h) return;
+  var S_ = lichS(), W_ = canW();
+  if(!S_ || !W_){ h.style.display = 'none'; return; }
+  var ds = dsDan(), IT = bangThuoc(), cf = cauHinh(), html = '', i;
+  if(!ds.length) html = '<div class="nl-empty">Lưu đàn (ngày vào gà + số con) ở mục <b>🐔 ĐÀN GÀ ĐÃ LƯU</b> — app sẽ báo việc ngày mai của từng đàn, ngày đầu mỗi đợt có kèm liều.</div>';
+  for(i = 0; i < ds.length; i++){
+    var f = ds[i], d = null;
+    try{ d = NLC.ngayMai(S_, W_, IT, f, cf); }catch(e){ d = null; }
+    if(!d) continue;
+    var dau = '<div class="nl-cn">🐔 ' + esc(f.name || 'Đàn') + ' · ' + (parseInt(f.count, 10) || 0) + ' con</div>';
+    if(d.chuaVao) html += '<div class="nl-card nl-mo">' + dau + '<div class="nl-cs" style="color:#8a8a96">CHƯA TỚI NGÀY VÀO GÀ</div></div>';
+    else if(d.het) html += '<div class="nl-card nl-mo">' + dau + '<div class="nl-cs" style="color:#8a8a96">HẾT LỊCH 120 NGÀY · HÔM NAY N' + (d.N - 1) + '</div></div>';
+    else{
+      var c = mau(d.t);
+      html += '<div class="nl-card" data-nl="xem" data-id="' + esc(f.id) + '" data-n="' + d.N + '" style="border-left-color:' + c + '">' + dau
+        + '<div class="nl-cs" style="color:' + c + '">NGÀY MAI · N' + d.N + ' · ' + esc(d.thu) + ', ' + d.ddmm + (d.coLieu ? ' · CÓ LIỀU NGÀY ĐẦU' : '') + '</div>'
+        + d.dong.map(dongHTML).join('')
+        + (IT ? '' : '<div class="nl-l nl-nho">⏳ Đang mở máy tính liều để tính liều…</div>')
+        + '<div class="nl-xem">Bấm để xem ngày mai trong máy tính liều ›</div></div>';
+    }
+  }
+  var L = $('nlList'); if(L && L._nl !== html){ L.innerHTML = html; L._nl = html; }
+  h.style.display = '';
+  veMoi(ds.length);
+}
+function veMoi(soDan){
+  var el = $('nlMoi'), dot = $('nlDot'), k = trangThai(), html = '';
+  if(dot) dot.className = 'nl-dot' + (k === 'ok' ? ' on' : (k === 'loi' || k === 'chan') ? ' loi' : '');
+  if(!el) return;
+  if(soDan){
+    if(k === 'ios') html = '<span>📱 iPhone: muốn được báo trước 1 ngày (kể cả khi tắt app), hãy Thêm app vào MH chính.</span><button type="button" data-nl="cai">CÁCH LÀM</button>';
+    else if(k === 'chan') html = '<span>🔕 Thông báo đang bị chặn trên máy này.</span><button type="button" data-nl="cai">CÁCH MỞ</button>';
+    else if(k === 'tat' || k === 'quyen') html = '<span>🔔 Muốn điện thoại tự báo lúc ' + hai(st.gio) + ':00 tối hôm trước — kể cả khi đã tắt app?</span><button type="button" data-nl="bat">BẬT</button>';
+    else if(k === 'loi') html = '<span>⚠ Thông báo đang bật nhưng chưa gửi được lịch lên máy chủ.</span><button type="button" data-nl="cai">XEM</button>';
+  }
+  if(el._nl !== html){ el.innerHTML = html; el._nl = html; }
+  el.style.display = html ? '' : 'none';
+}
+function xemMai(id, N){
+  try{ if(typeof Wn.applyFlock === 'function') Wn.applyFlock(id); }catch(e){}
+  setTimeout(function(){
+    try{
+      var ni = $('numInput');
+      if(ni && N >= 1){ ni.value = String(N); if(typeof Wn.onNum === 'function') Wn.onNum(); }
+      noi('Đang xem NGÀY MAI · N' + N);
+    }catch(e){}
+  }, 80);
+}
+function cuonToi(){
+  var h = dungHop(); if(!h) return;
+  try{ h.scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){ try{ h.scrollIntoView(); }catch(_){} }
+  h.classList.add('nl-sang'); setTimeout(function(){ h.classList.remove('nl-sang'); }, 1800);
+}
+
+/* ═════════ TRẠNG THÁI ═════════ */
+var _dang = false, _canLai = false, _pDang = null, _lanLoi = 0, _henT = null, _henLoiT = null;
+var _thuDang = false, _thuKQ = '', _thuLuc = 0;
+function trangThai(){
+  if(!hoTroDay()) return (laIOS() && !laMH()) ? 'ios' : 'khong';
+  var q = quyen();
+  if(q === 'denied') return 'chan';
+  if(!st.bat) return 'tat';
+  if(q !== 'granted') return 'quyen';
+  if(_dang) return 'dang';
+  if(st.loi) return 'loi';
+  if(st.luc) return 'ok';
+  return 'cho';
+}
+function gioLuc(ms){ var t = new Date(ms); return hai(t.getHours()) + ':' + hai(t.getMinutes()) + ' ' + hai(t.getDate()) + '/' + hai(t.getMonth() + 1); }
+function chuTT(){
+  var k = trangThai(), s;
+  if(k === 'ios') s = '📱 iPhone / iPad: mở app bằng Safari → nút Chia sẻ ⬆️ → “Thêm vào MH chính”, rồi mở app từ biểu tượng đó và bật thông báo (cần iOS 16.4 trở lên).';
+  else if(k === 'khong') s = 'Máy / trình duyệt này chưa nhận được thông báo khi đã tắt app. Android: mở bằng Chrome. iPhone: Safari + Thêm vào MH chính.';
+  else if(k === 'chan') s = '🔕 Thông báo đang bị CHẶN. Vào Cài đặt điện thoại → Ứng dụng → Chrome (hoặc ' + TEN_APP + ') → Thông báo → bật lại, rồi mở lại app.';
+  else if(k === 'tat') s = '⚪ Chưa bật. Bấm 🔔 BẬT THÔNG BÁO — điện thoại sẽ tự báo lúc ' + hai(st.gio) + ':00 tối hôm trước, kể cả khi đã tắt app.';
+  else if(k === 'quyen') s = '🔔 Chưa cho phép hiện thông báo — bấm 🔔 BẬT THÔNG BÁO rồi chọn Cho phép.';
+  else if(k === 'dang') s = '⏳ Đang gửi lịch lên máy chủ…';
+  else if(k === 'loi') s = '❌ Chưa gửi được lịch lên máy chủ: ' + st.loi + '\nApp tự thử lại sau ít phút (hoặc bấm 🔄 GỬI LẠI LỊCH).';
+  else if(k === 'ok') s = '✅ ĐANG BẬT · báo lúc ' + hai(st.gio) + ':00 tối hôm trước.\n' + (st.soDan ? 'Máy chủ đã nhận lịch ' + (st.so || 0) + ' ngày tới của ' + st.soDan + ' đàn' : 'Chưa có đàn nào để báo — lưu đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU') + ' (lúc ' + gioLuc(st.luc) + ').';
+  else s = '⏳ Đang chuẩn bị gửi lịch lên máy chủ…';
+  if(_thuKQ) s += '\nThử lúc ' + gioLuc(_thuLuc || Date.now()) + ' — ' + _thuKQ;
+  return s;
+}
+
+/* ═════════ BẢNG ⚙ THÔNG BÁO ═════════ */
+var HUONG_DAN = '<p><b>Báo cái gì?</b> Mỗi đàn đã lưu (ngày vào gà + số con) có 1 thông báo mỗi tối: ngày mai Sáng làm gì, Chiều làm gì. <b>Ngày đầu của một đợt</b> có kèm <b>liều 1 ngày</b>, tính y như Máy tính liều PRO (số con × cân nặng chuẩn của ngày đó). Ngày 2, 3… của đợt chỉ nhắc tên — bạn tự tính.</p>'
+  + '<p><b>Đổi số con / ngày vào gà:</b> sửa đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU — app tự gửi lịch mới lên máy chủ (cần có mạng). Xoá đàn là thôi báo đàn đó.</p>'
+  + '<p><b>Android:</b> mở app bằng Chrome (hoặc app đã cài ra màn hình chính) → 🔔 BẬT THÔNG BÁO → Cho phép.</p>'
+  + '<p><b>iPhone / iPad:</b> mở bằng Safari → nút Chia sẻ ⬆️ → “Thêm vào MH chính”, rồi mở app từ biểu tượng đó mới bật được (iOS 16.4 trở lên).</p>'
+  + '<p><b>Thử:</b> bấm 📲 GỬI THỬ → có thông báo 1/2 ngay → tắt hẳn app → khoảng 20 giây sau có thông báo 2/2. Có đủ 2 cái là máy đã nhận được.</p>'
+  + '<p><b>Không thấy báo:</b> Cài đặt điện thoại → Ứng dụng → Chrome (hoặc ' + esc(TEN_APP) + ') → Thông báo: bật. Tắt chế độ tiết kiệm / tối ưu pin cho Chrome. Lúc tới giờ máy phải có mạng — mất mạng thì có mạng lại sẽ nhận (trễ nhất 6 giờ sáng hôm sau).</p>'
+  + '<p><b>Thỉnh thoảng mở app khi có mạng</b> để lịch trên máy chủ luôn theo bản mới nhất của app.</p>';
+var mask = null;
+function dungBang(){
+  if(mask && D.body.contains(mask)) return mask;
+  var g, op = '';
+  for(g = GIO_TU; g <= GIO_DEN; g++) op += '<option value="' + g + '">' + hai(g) + ':00' + (g === GIO_MD ? ' (đề nghị)' : '') + '</option>';
+  mask = D.createElement('div'); mask.id = 'nlMask'; mask.className = 'nl-mask';
+  mask.innerHTML = '<div class="nl-pn" role="dialog" aria-label="Thông báo lịch">'
+    + '<div class="nl-ph">🔔 THÔNG BÁO LỊCH · BÁO TRƯỚC 1 NGÀY</div>'
+    + '<div class="nl-psub">Tối hôm trước, đúng giờ chọn bên dưới, điện thoại tự báo việc ngày mai của từng đàn — kể cả khi đã tắt app. Ngày đầu mỗi đợt có kèm liều.</div>'
+    + '<div id="nlTT" class="nl-tt"></div>'
+    + '<button type="button" id="nlBat" class="nl-b nl-b1" data-nl="bat">🔔 BẬT THÔNG BÁO</button>'
+    + '<div class="nl-gr"><label for="nlGio">GIỜ BÁO · TỐI HÔM TRƯỚC</label><select id="nlGio" class="nl-sel">' + op + '</select></div>'
+    + '<div class="nl-r2"><button type="button" id="nlThu" class="nl-b nl-b2" data-nl="thu">📲 GỬI THỬ</button><button type="button" id="nlTat" class="nl-b nl-b3" data-nl="tat">TẮT THÔNG BÁO</button></div>'
+    + '<div class="nl-sec">XEM TRƯỚC 7 NGÀY TỚI</div><div id="nlXT" class="nl-xt"></div>'
+    + '<details class="nl-hdan"><summary>❓ Cách dùng · khi không thấy báo</summary><div class="nl-hd-in">' + HUONG_DAN + '</div></details>'
+    + '<div class="nl-ver" id="nlVer"></div>'
+    + '<button type="button" class="nl-ok" data-nl="dong">ĐÓNG</button></div>';
+  D.body.appendChild(mask);
+  mask.addEventListener('click', function(ev){
+    if(ev.target === mask){ dongBang(); return; }
+    var t = ev.target && ev.target.closest ? ev.target.closest('[data-nl]') : null; if(!t) return;
+    var a = t.getAttribute('data-nl');
+    if(a === 'bat') bat(); else if(a === 'thu') thu(); else if(a === 'tat') tat(); else if(a === 'dong') dongBang();
+  });
+  $('nlGio').addEventListener('change', function(){
+    var v = parseInt(this.value, 10); if(!(v >= GIO_TU && v <= GIO_DEN)) return;
+    st.gio = v; luuSt(); veTT(); veBang();
+    if(st.bat) dongBo('gio', true).then(function(ok){ noi(ok ? '✅ Đã đổi giờ báo: ' + hai(v) + ':00' : '⚠ Chưa gửi được giờ mới lên máy chủ — app tự thử lại'); });
+  });
+  return mask;
+}
+function moBang(){
+  dungBang(); if(mask.classList.contains('on')){ veTT(); return; }
+  mask.classList.add('on'); veTT();
+  try{ history.pushState({ nlBang: 1 }, ''); }catch(e){}
+}
+function dongBang(tuBack){
+  if(!mask || !mask.classList.contains('on')) return;
+  mask.classList.remove('on');
+  if(tuBack !== true){ try{ if(history.state && history.state.nlBang) history.back(); }catch(e){} }
+}
+function veTT(){
+  if(!mask) return;
+  var k = trangThai(), tt = $('nlTT'), b = $('nlBat'), th = $('nlThu'), ta = $('nlTat'), g = $('nlGio'), v = $('nlVer');
+  var chu = chuTT(); if(tt && tt.textContent !== chu) tt.textContent = chu;
+  if(b){
+    var bt = (k === 'ok') ? '✅ ĐANG BẬT · bấm để gửi lại lịch' : (k === 'loi' || k === 'cho') ? '🔄 GỬI LẠI LỊCH LÊN MÁY CHỦ' : (k === 'dang') ? '⏳ ĐANG GỬI LỊCH…' : (k === 'ios' || k === 'khong') ? '📖 XEM CÁCH BẬT' : '🔔 BẬT THÔNG BÁO';
+    if(b.textContent !== bt) b.textContent = bt;
+    b.className = 'nl-b nl-b1' + (k === 'ok' ? ' on' : '');
+    b.disabled = (k === 'dang');
+  }
+  var dangBat = !!st.bat && hoTroDay() && quyen() === 'granted';
+  if(th){ th.disabled = !dangBat || _thuDang || _dang; var tc = _thuDang ? '⏳ ĐANG GỬI THỬ…' : '📲 GỬI THỬ'; if(th.textContent !== tc) th.textContent = tc; }
+  if(ta) ta.disabled = !st.bat;
+  if(g && String(g.value) !== String(st.gio)) g.value = String(st.gio);
+  if(v) v.textContent = 'Nhắc lịch ' + NL_VER + ' · ' + TEN_APP + ' · máy …' + String(st.may || '').slice(-4);
+  if(mask.classList.contains('on')) veXemTruoc();   /* bảng đang đóng thì khỏi soạn phần xem trước */
+}
+function veXemTruoc(){
+  var el = $('nlXT'); if(!el) return;
+  var S_ = lichS(), W_ = canW(), IT = bangThuoc(), cf = cauHinh(), ds = dsDan(), html = '', i, j;
+  if(!S_ || !W_){ el.innerHTML = ''; el._nl = ''; return; }
+  if(!ds.length){ el.innerHTML = '<div class="nl-nho">Chưa có đàn nào — lưu đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU.</div>'; el._nl = ''; return; }
+  var hn = NLC.nuaDem(new Date()), keys = []; for(i = 0; i < 7; i++) keys.push(NLC.ymd(NLC.cong(hn, i)));
+  for(i = 0; i < ds.length; i++){
+    var f = ds[i], L = [];
+    try{ L = NLC.soanDan(S_, W_, IT, f, cf).filter(function(e){ return keys.indexOf(e.ngay) >= 0; }); }catch(e){ L = []; }
+    html += '<div class="nl-xd">🐔 ' + esc(f.name || 'Đàn') + ' · ' + (parseInt(f.count, 10) || 0) + ' con</div>';
+    if(!L.length) html += '<div class="nl-nho">Không có lịch trong 7 ngày tới.</div>';
+    for(j = 0; j < L.length; j++){
+      var e = L[j], p = e.ngay.split('-'), toi = new Date(+p[0], +p[1] - 1, +p[2]), mai = NLC.cong(toi, 1);
+      html += '<div class="nl-xi"><div class="nl-xg">TỐI ' + (e.ngay === keys[0] ? 'NAY' : esc(NLC.thu(toi)).toUpperCase()) + ', ' + NLC.ddmm(toi) + ' · ' + hai(st.gio) + ':00 → MAI N' + e.N + ' (' + esc(NLC.thu(mai)) + ', ' + NLC.ddmm(mai) + ')</div>'
+        + '<div class="nl-xb">' + e.b.split('\n').map(dongHTML).join('') + '</div></div>';
+    }
+  }
+  if(!IT) html += '<div class="nl-nho">⏳ Máy tính liều chưa sẵn sàng — liều sẽ hiện sau vài giây.</div>';
+  if(el._nl !== html){ el.innerHTML = html; el._nl = html; }
+}
+function ve(){ try{ veBang(); }catch(e){} try{ veTT(); }catch(e){} }
+
+/* ═════════ THÔNG BÁO ĐẨY: SW riêng + mã máy (Firebase Messaging) ═════════ */
+var _regP = null;
+function choActive(reg){
+  if(!reg || reg.active) return Promise.resolve(reg);
+  return new Promise(function(ok){
+    var sw = reg.installing || reg.waiting, xong = false;
+    function het(){ if(!xong){ xong = true; ok(reg); } }
+    if(!sw){ het(); return; }
+    sw.addEventListener('statechange', function(){ if(sw.state === 'activated' || sw.state === 'redundant') het(); });
+    setTimeout(het, 15000);
+  });
+}
+function layReg(){
+  if(!('serviceWorker' in NAV)) return Promise.reject(loi('Trình duyệt này không có service worker'));
+  if(!_regP){
+    _regP = NAV.serviceWorker.register(DIR + SW_FILE, { scope: DIR + SW_DIR })
+      .then(function(r){ try{ if(r && r.update) r.update()['catch'](function(){}); }catch(e){} return r; })
+      .then(choActive)
+      .then(function(r){ if(!r || !r.active) throw loi('Tệp ' + SW_FILE + ' chưa chạy được'); return r; })
+      ['catch'](function(e){ _regP = null; throw e && e.nl ? e : loi('Chưa tải được tệp ' + SW_FILE + ' — đã đưa tệp này lên GitHub, cạnh index.html chưa? (' + ((e && e.message) || e) + ')'); });
+  }
+  return _regP;
+}
+function layRegSan(){ try{ return NAV.serviceWorker.getRegistration(DIR + SW_DIR)['catch'](function(){ return null; }); }catch(e){ return Promise.resolve(null); } }
+function huyDay(){
+  return layRegSan().then(function(reg){ return (reg && reg.pushManager) ? reg.pushManager.getSubscription() : null; })
+    .then(function(s){ return s ? s.unsubscribe() : false; })['catch'](function(){ return false; });
+}
+var nhap = null; try{ nhap = new Function('u', 'return import(u)'); }catch(e){ nhap = null; }
+var _fbP = null;
+function napFB(){
+  if(!nhap) return Promise.reject(loi('Trình duyệt quá cũ — không nạp được bộ nhận thông báo'));
+  if(!_fbP) _fbP = Promise.all([nhap(FB + 'firebase-app.js'), nhap(FB + 'firebase-messaging.js')])['catch'](function(e){
+    _fbP = null; throw loi('Chưa tải được bộ nhận thông báo của Google — kiểm tra mạng (' + ((e && e.message) || e) + ')');
+  });
+  return _fbP;
+}
+function webHopLe(w){ return !!(w && typeof w.appId === 'string' && w.appId.indexOf('1:571694791559:web:') === 0 && w.appId !== MA_SONO && w.apiKey && w.projectId === 'so-no-cc57a'); }
+/* Lấy cấu hình app web riêng từ máy chủ (nhớ trên máy, mỗi lần gửi lịch máy chủ trả lại bản mới nhất) */
+function layWeb(){
+  if(webHopLe(st.web)) return Promise.resolve(st.web);
+  var ac = null; try{ ac = new AbortController(); }catch(e){ ac = null; }
+  var hen = setTimeout(function(){ try{ if(ac) ac.abort(); }catch(e){} }, 20000);
+  return fetch(URL_DK + '?web=' + Date.now(), { cache: 'no-store', signal: ac ? ac.signal : undefined })
+    .then(function(r){ return r.text().then(function(tx){ var j = null; try{ j = JSON.parse(tx); }catch(e){ j = null; }
+      if(!j){
+        if(r.status === 403) throw loi('cổng máy chủ đang khoá (403) — chạy lại CAI-DAT.bat của máy chủ nhắc lịch');
+        if(r.status === 404) throw loi('máy chủ nhắc lịch chưa cài (404) — chạy CAI-DAT.bat trong gói ga-nhaclich');
+        throw loi('máy chủ trả mã ' + r.status);
+      }
+      return j; }); })
+    .then(function(j){ clearTimeout(hen);
+      if(!webHopLe(j.web)) throw loi('máy chủ nhắc lịch chưa có cấu hình app web riêng — chạy lại CAI-DAT.bat');
+      st.web = j.web; luuSt(); return j.web; }, function(e){ clearTimeout(hen); throw e; });
+}
+function layToken(reg){
+  return Promise.all([napFB(), layWeb()]).then(function(kq){
+    var m = kq[0], web = kq[1], A = m[0], M = m[1], app = null, ds = [], i;
+    try{ ds = A.getApps() || []; }catch(e){ ds = []; }
+    for(i = 0; i < ds.length; i++) if(ds[i] && ds[i].name === 'nhaclich') app = ds[i];
+    if(!app) app = A.initializeApp(web, 'nhaclich');
+    if(!app || !app.options || app.options.appId === MA_SONO) throw loi('cấu hình trùng app Sổ Nợ — dừng để không làm mất thông báo của Sổ Nợ');
+    return Promise.resolve(M.isSupported ? M.isSupported() : true).then(function(duoc){
+      if(!duoc) throw loi('Trình duyệt này không nhận được thông báo khi đã tắt app');
+      return M.getToken(M.getMessaging(app), { serviceWorkerRegistration: reg });
+    });
+  }).then(function(tk){ if(!tk) throw loi('Google không trả mã nhận thông báo'); return tk; });
+}
+var LOI_MC = { 'het-han': 'mã nhận thông báo đã hết hiệu lực', 'ma-may': 'mã máy không hợp lệ', 'token': 'mã nhận thông báo không hợp lệ',
+  'gio': 'giờ báo không hợp lệ', 'lich-hong': 'lịch gửi lên bị hỏng', 'lich-qua-lon': 'lịch quá lớn (quá nhiều đàn)', 'chua-dk': 'máy chủ chưa có máy này', 'than-hong': 'dữ liệu gửi lên bị hỏng' };
+function moTaLoi(e){
+  if(!e) return 'không rõ';
+  if(e.nl) return String(e.message).slice(0, 240);
+  var c = String(e.code || ''), m = String(e.message || e), g = '';
+  if(e.name === 'AbortError') g = 'máy chủ chưa trả lời (mạng yếu)';
+  else if(/Failed to fetch|NetworkError|Load failed|network/i.test(m)) g = 'không gọi được máy chủ — kiểm tra mạng';
+  else if(c === 'messaging/permission-blocked' || c === 'messaging/permission-default') g = 'chưa được phép hiện thông báo';
+  else if(c.indexOf('messaging/') === 0 || c.indexOf('installations/') === 0) g = 'Google chưa cấp mã nhận thông báo cho máy này';
+  var goc = (c && m.indexOf(c) < 0) ? c + ' — ' + m : m;
+  return (g ? g + ' (' + goc + ')' : goc).slice(0, 240);
+}
+function goiMayChu(than){
+  var ac = null; try{ ac = new AbortController(); }catch(e){ ac = null; }
+  var hen = setTimeout(function(){ try{ if(ac) ac.abort(); }catch(e){} }, 30000);
+  return fetch(URL_DK, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(than), cache: 'no-store', signal: ac ? ac.signal : undefined })
+    .then(function(r){
+      return r.text().then(function(tx){
+        var j = null; try{ j = JSON.parse(tx); }catch(e){ j = null; }
+        if(j && typeof j === 'object') return j;
+        if(r.status === 403) throw loi('cổng máy chủ đang khoá (403) — chạy lại CAI-DAT.bat của máy chủ nhắc lịch');
+        if(r.status === 404) throw loi('máy chủ nhắc lịch chưa cài (404) — chạy CAI-DAT.bat trong gói ga-nhaclich');
+        throw loi('máy chủ trả mã ' + r.status);
+      });
+    })
+    .then(function(j){ clearTimeout(hen); return j; }, function(e){ clearTimeout(hen); throw e; });
+}
+
+/* ───────── soạn lịch gửi lên ───────── */
+function bam(s){ var h = 0x811c9dc5, i; for(i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0; } return h.toString(36) + '.' + s.length.toString(36); }
+function soanLich(IT){
+  var S_ = lichS(), W_ = canW(), cf = cauHinh(), ds = dsDan(), tron = {}, dan = [], i, j;
+  for(i = 0; i < ds.length; i++){
+    var f = ds[i], L = NLC.soanDan(S_, W_, IT, f, cf);
+    if(!L.length) continue;
+    dan.push({ ten: String(f.name || 'Đàn').slice(0, 40), so: parseInt(f.count, 10) || 0, vao: f.hatch });
+    for(j = 0; j < L.length; j++){ var e = L[j]; (tron[e.ngay] = tron[e.ngay] || []).push({ t: e.t, b: e.b, g: e.g }); }
+  }
+  return { tron: tron, dan: dan };
+}
+function soByte(s){ try{ return new TextEncoder().encode(s).length; }catch(e){ return s.length * 3; } }
+function choGui(tron){
+  var hom = NLC.ymd(new Date()), out = {}, k, ks = Object.keys(tron).sort();
+  for(k = 0; k < ks.length; k++) if(ks[k] >= hom) out[ks[k]] = tron[ks[k]];
+  while(soByte(JSON.stringify(out)) > 800000){ ks = Object.keys(out).sort(); if(!ks.length) break; delete out[ks[ks.length - 1]]; }
+  return out;
+}
+function mauThu(){
+  var S_ = lichS(), W_ = canW(), IT = bangThuoc(), cf = cauHinh(), ds = dsDan(), i;
+  for(i = 0; i < ds.length; i++){
+    var d = null; try{ d = NLC.ngayMai(S_, W_, IT, ds[i], cf); }catch(e){ d = null; }
+    if(d && d.dong) return { t: d.tieuDe, b: d.dong.join('\n') };
+  }
+  return null;
+}
+
+/* ───────── ĐỒNG BỘ: app → máy chủ ───────── */
+function henDongBo(lyDo, ms){ clearTimeout(_henT); _henT = setTimeout(function(){ dongBo(lyDo); }, ms == null ? 1500 : ms); }
+function dongBo(lyDo, ep){
+  if(!st.bat || !hoTroDay() || quyen() !== 'granted') return Promise.resolve(false);
+  if(_dang){ if(ep) _canLai = 'ep'; else if(!_canLai) _canLai = true; return _pDang; }
+  _dang = true; clearTimeout(_henLoiT); ve();
+  var daThuLai = false, doi = false;
+  function lam(){
+    return choBang(15000).then(function(IT){
+      if(!IT) throw loi('Máy tính liều chưa sẵn sàng — mở lại app');
+      var sl = soanLich(IT), h = bam(JSON.stringify([sl.tron, st.gio, LOAI_APP, URL_MO, NL_VER])), bay = Date.now();
+      doi = !(st.token && st.hash === h && st.luc);              /* có thay đổi chưa gửi lên máy chủ */
+      /* Không đổi gì + vừa dò gần đây ⇒ KHÔNG nạp Firebase, KHÔNG gọi máy chủ.
+         Quá 6 giờ (mỗi lần mở app) ⇒ gửi lại 1 lần: máy chủ lỡ xoá máy (mã cũ chết) thì tự có lại. */
+      if(!ep && !doi && (bay - st.luc) < GUI_LAI && (bay - (st.kiem || 0)) < KIEM_LAI){ st.loi = ''; luuSt(); return { boQua: true }; }
+      return layReg().then(function(reg){ return layToken(reg); }).then(function(tk){
+        if(tk !== st.token) doi = true;     /* mã máy mới / đã đổi ⇒ phải gửi được lên máy chủ, lỗi thì báo + thử lại */
+        var than = { v: 1, viec: 'dk', may: st.may, token: tk, app: LOAI_APP, ten: TEN_APP, gio: st.gio, url: URL_MO, ver: NL_VER,
+                     ua: String(NAV.userAgent || '').slice(0, 150), lich: choGui(sl.tron), dan: sl.dan };
+        return goiMayChu(than).then(function(r){
+          if(r && r.ok){ st.token = tk; st.hash = h; st.luc = st.kiem = Date.now(); st.loi = ''; st.so = r.so || 0; st.soDan = sl.dan.length; if(webHopLe(r.web)) st.web = r.web; luuSt(); return r; }
+          if(r && r.loi === 'het-han' && !daThuLai){ daThuLai = true; st.token = ''; st.hash = ''; luuSt(); return huyDay().then(lam); }   /* mã máy chết ⇒ xin mã mới 1 lần */
+          throw loi('máy chủ chối: ' + ((r && LOI_MC[r.loi]) || (r && r.loi) || 'không rõ'));
+        });
+      });
+    });
+  }
+  _pDang = lam().then(function(){ _lanLoi = 0; return true; }, function(e){
+    if(!ep && !doi && st.luc && !st.loi){
+      /* Chỉ là lượt dò định kỳ (lịch trên máy chủ vẫn đúng) mà mất mạng ⇒ KHÔNG báo lỗi làm khách lo, 30 phút sau dò lại */
+      st.kiem = Date.now() - KIEM_LAI + 1800000; luuSt();
+      try{ console.warn('[nhaclich] lượt dò định kỳ chưa được (lịch trên máy chủ vẫn còn):', moTaLoi(e)); }catch(_){}
+      return false;
+    }
+    st.loi = moTaLoi(e); luuSt(); _lanLoi++;
+    var cho = Math.min(1800000, 15000 * Math.pow(2, Math.min(_lanLoi, 7)));
+    _henLoiT = setTimeout(function(){ if(!D.hidden) dongBo('thu-lai'); }, cho);
+    try{ console.warn('[nhaclich] chưa gửi được lịch:', st.loi); }catch(_){}
+    return false;
+  }).then(function(ok){
+    _dang = false; var lai = _canLai; _canLai = false; ve();
+    if(lai) setTimeout(function(){ dongBo('lai', lai === 'ep'); }, 300);
+    return ok;
+  });
+  return _pDang;
+}
+
+/* ───────── nút bấm ───────── */
+function bat(){
+  if(!hoTroDay()){ moBang(); var hd = mask && mask.querySelector('.nl-hdan'); if(hd) hd.open = true; veTT(); return; }
+  if(_dang) return;
+  if(quyen() === 'granted'){
+    var moi = !st.bat; st.bat = 1; luuSt(); ve();
+    dongBo(moi ? 'bat' : 'tay', true).then(function(ok){ noi(ok ? (moi ? '✅ Đã bật thông báo lịch' : '✅ Đã gửi lại lịch lên máy chủ') : '⚠ Chưa gửi được lịch lên máy chủ — xem dòng trạng thái'); });
+    return;
+  }
+  if(quyen() === 'denied'){ moBang(); veTT(); return; }
+  var da = false;
+  var xong = function(p){
+    if(da) return; da = true;
+    if(p === 'granted'){ st.bat = 1; luuSt(); ve(); dongBo('bat', true).then(function(ok){ noi(ok ? '✅ Đã bật thông báo lịch' : '⚠ Đã cho phép nhưng chưa gửi được lịch lên máy chủ'); }); }
+    else ve();
+  };
+  try{ var r = Notification.requestPermission(xong); if(r && r.then) r.then(xong, function(){ ve(); }); }catch(e){ ve(); }
+}
+function tat(){
+  if(!st.bat) return;
+  if(!confirm('Tắt thông báo lịch trên máy này?\n(Lưu đàn vẫn giữ nguyên — muốn báo lại thì bấm BẬT.)')) return;
+  var may = st.may;
+  st.bat = 0; st.token = ''; st.hash = ''; st.luc = 0; st.loi = ''; _thuKQ = ''; luuSt(); ve();
+  goiMayChu({ v: 1, viec: 'tat', may: may })['catch'](function(){});
+  huyDay();
+  noi('Đã tắt thông báo lịch trên máy này');
+}
+function thu(){
+  if(_thuDang) return;
+  if(!st.bat || quyen() !== 'granted'){ noi('Bấm 🔔 BẬT THÔNG BÁO trước'); return; }
+  _thuDang = true; _thuLuc = Date.now(); _thuKQ = '⏳ Đang gửi thử — CHƯA tắt app nhé…'; ve();
+  dongBo('thu').then(function(ok){
+    if(!ok || !st.token) throw loi('máy này chưa gửi được lịch lên máy chủ' + (st.loi ? ': ' + st.loi : ''));
+    return goiMayChu({ v: 1, viec: 'thu', may: st.may, token: st.token, mau: mauThu() });
+  }).then(function(r){
+    if(r && r.ok) _thuKQ = '✅ Máy chủ đã gửi thông báo thử 1/2. Giờ hãy TẮT HẲN app (vuốt khỏi màn hình đa nhiệm) — khoảng 20 giây nữa có thông báo 2/2.';
+    else if(r && r.trung) _thuKQ = '⏳ Vừa thử xong — chờ 20 giây rồi bấm lại.';
+    else if(r && (r.loi === 'het-han' || r.loi === 'chua-dk')){ st.token = ''; st.hash = ''; luuSt(); if(r.loi === 'het-han') huyDay(); dongBo('lai', true); _thuKQ = '⏳ Máy này đang đăng ký lại với máy chủ — 10 giây nữa bấm thử lại.'; }
+    else _thuKQ = '❌ Máy chủ chưa gửi được' + (r && r.loi ? ': ' + (LOI_MC[r.loi] || r.loi) : '') + '.';
+  }, function(e){ _thuKQ = '❌ Chưa thử được: ' + moTaLoi(e); })
+  .then(function(){ _thuDang = false; _thuLuc = Date.now(); ve(); noi(_thuKQ.length > 70 ? _thuKQ.slice(0, 68) + '…' : _thuKQ); });
+}
+
+/* ───────── móc vào app (KHÔNG sửa hàm cũ — chỉ bọc saveFlocksArr để biết đàn vừa đổi) ───────── */
+function daDoiDan(){ setTimeout(function(){ ve(); }, 0); if(st.bat) henDongBo('dan', 1500); }
+function mocHam(){
+  try{
+    var goc = Wn.saveFlocksArr;
+    if(typeof goc === 'function' && !goc.__nl){
+      var boc = function(){ var r = goc.apply(this, arguments); try{ daDoiDan(); }catch(e){} return r; };
+      boc.__nl = true; Wn.saveFlocksArr = boc;
+    }
+  }catch(e){}
+}
+var _homNay = '';
+function khoiDong(){
+  mocHam(); dungHop(); veBang(); _homNay = NLC.ymd(new Date());
+  choBang(15000).then(function(){ ve(); });
+  Wn.addEventListener('storage', function(e){
+    if(!e) return;
+    if(e.key === KEY_DAN) daDoiDan();
+    else if(e.key === KEY){ st = docSt(); ve(); }
+  });
+  D.addEventListener('visibilitychange', function(){
+    if(D.hidden) return;
+    var k = NLC.ymd(new Date()); if(k !== _homNay){ _homNay = k; }
+    ve();
+    if(st.bat && (Date.now() - (st.kiem || 0)) > KIEM_LAI) dongBo('mo');
+  });
+  Wn.addEventListener('online', function(){ if(st.bat && st.loi) dongBo('co-mang'); });
+  Wn.addEventListener('popstate', function(){ dongBang(true); });
+  setInterval(function(){ var k = NLC.ymd(new Date()); if(k !== _homNay){ _homNay = k; ve(); } }, 60000);
+  try{ if(NAV.serviceWorker) NAV.serviceWorker.addEventListener('message', function(e){ if(e && e.data && e.data.nl === 'mo') cuonToi(); }); }catch(e){}
+  if(location.hash === '#nhaclich'){
+    setTimeout(cuonToi, 700);
+    try{ history.replaceState(history.state, '', location.pathname + location.search); }catch(e){}
+  }
+  if(st.bat) setTimeout(function(){ dongBo('mo'); }, 2500);
+}
+Wn.__NL__ = { NLC: NLC, VER: NL_VER, st: function(){ return st; }, dongBo: dongBo, veBang: veBang, moBang: moBang, dongBang: dongBang, trangThai: trangThai, soanLich: soanLich, bat: bat, thu: thu, tat: tat };
+if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', khoiDong); else khoiDong();
+}catch(e){ try{ console.warn("[nhaclich] khối nhắc lịch lỗi — app vẫn chạy như cũ", e); }catch(_){} }
+})();
+</script>
+<!-- ===== HẾT PHẦN NHẮC LỊCH ===== -->
+
 </body>
 </html>
