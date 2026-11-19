@@ -4062,8 +4062,16 @@ var NLC = (function(){
 })();
 
 /* ---------- [NL1] GIAO DIỆN + THÔNG BÁO ĐẨY ---------- */
-var NL_VER   = '2026-11-19-NL1';
-var FB       = 'https://www.gstatic.com/firebasejs/10.12.0/';
+var NL_VER   = '2026-11-19-NL2';
+/* [NL2] Kho "firebase-messaging-database" trong trình duyệt là CHUNG cả tên miền github.io (Sổ Nợ, Quản Trị, Gà Nòi…):
+   Firebase 12.x (app Quản Trị) nâng kho lên bản 2; Firebase 10.12.0 (Sổ Nợ, Gà Nòi NL1) chỉ mở được bản 1
+   ⇒ máy đã mở Quản Trị thì báo "The requested version (1) is less than the existing version (2)".
+   Gà Nòi chọn bản Firebase THEO KHO ĐANG CÓ trên máy: kho bản 2 ⇒ 12.17.1 (= đúng bản Quản Trị);
+   chưa có kho / kho bản 1 ⇒ 10.12.0 (= đúng bản Sổ Nợ) — Gà Nòi KHÔNG tự nâng kho, để không làm hỏng chuông đơn
+   của Sổ Nợ trên máy khách dùng cả 2 app. Không đọc được bản kho / mở kho báo VersionError ⇒ tự chuyển 12.17.1, thử lại 1 lần. */
+var FB_CU    = 'https://www.gstatic.com/firebasejs/10.12.0/';
+var FB_MOI   = 'https://www.gstatic.com/firebasejs/12.17.1/';
+var KHO_FCM  = 'firebase-messaging-database';
 /* Cấu hình Firebase lấy từ MÁY CHỦ (app web riêng "Ga Noi Nhac Lich" do CAI-DAT.bat tạo).
    KHÔNG dùng mã app của Sổ Nợ / Quản Trị: thư viện Firebase cất mã nhận thông báo trong trình duyệt THEO MÃ APP,
    cùng tên miền github.io mà dùng chung mã app thì mỗi lần app này xin mã sẽ HUỶ mã của Sổ Nợ (mất chuông đơn). */
@@ -4362,14 +4370,25 @@ function huyDay(){
     .then(function(s){ return s ? s.unsubscribe() : false; })['catch'](function(){ return false; });
 }
 var nhap = null; try{ nhap = new Function('u', 'return import(u)'); }catch(e){ nhap = null; }
-var _fbP = null;
-function napFB(){
+var _fbP = {};
+function napFB(goc){
   if(!nhap) return Promise.reject(loi('Trình duyệt quá cũ — không nạp được bộ nhận thông báo'));
-  if(!_fbP) _fbP = Promise.all([nhap(FB + 'firebase-app.js'), nhap(FB + 'firebase-messaging.js')])['catch'](function(e){
-    _fbP = null; throw loi('Chưa tải được bộ nhận thông báo của Google — kiểm tra mạng (' + ((e && e.message) || e) + ')');
+  if(!_fbP[goc]) _fbP[goc] = Promise.all([nhap(goc + 'firebase-app.js'), nhap(goc + 'firebase-messaging.js')])['catch'](function(e){
+    delete _fbP[goc]; throw loi('Chưa tải được bộ nhận thông báo của Google — kiểm tra mạng (' + ((e && e.message) || e) + ')');
   });
-  return _fbP;
+  return _fbP[goc];
 }
+/* [NL2] Bản của kho firebase-messaging-database đang có trên máy: 0 = chưa có kho, -1 = không đọc được (chỉ ĐỌC danh sách, không mở kho) */
+function banKho(){
+  try{
+    if(!Wn.indexedDB || typeof Wn.indexedDB.databases !== 'function') return Promise.resolve(-1);
+    return Promise.resolve(Wn.indexedDB.databases()).then(function(ds){
+      for(var i = 0; ds && i < ds.length; i++) if(ds[i] && ds[i].name === KHO_FCM) return parseInt(ds[i].version, 10) || 0;
+      return 0;
+    }, function(){ return -1; });
+  }catch(e){ return Promise.resolve(-1); }
+}
+function loiBanKho(e){ return !!e && (e.name === 'VersionError' || /requested version .* less than the existing version/i.test(String(e.message || e))); }
 function webHopLe(w){ return !!(w && typeof w.appId === 'string' && w.appId.indexOf('1:571694791559:web:') === 0 && w.appId !== MA_SONO && w.apiKey && w.projectId === 'so-no-cc57a'); }
 /* Lấy cấu hình app web riêng từ máy chủ (nhớ trên máy, mỗi lần gửi lịch máy chủ trả lại bản mới nhất) */
 function layWeb(){
@@ -4388,9 +4407,9 @@ function layWeb(){
       if(!webHopLe(j.web)) throw loi('máy chủ nhắc lịch chưa có cấu hình app web riêng — chạy lại CAI-DAT.bat');
       st.web = j.web; luuSt(); return j.web; }, function(e){ clearTimeout(hen); throw e; });
 }
-function layToken(reg){
-  return Promise.all([napFB(), layWeb()]).then(function(kq){
-    var m = kq[0], web = kq[1], A = m[0], M = m[1], app = null, ds = [], i;
+function xinMa(goc, web, reg){
+  return napFB(goc).then(function(m){
+    var A = m[0], M = m[1], app = null, ds = [], i;
     try{ ds = A.getApps() || []; }catch(e){ ds = []; }
     for(i = 0; i < ds.length; i++) if(ds[i] && ds[i].name === 'nhaclich') app = ds[i];
     if(!app) app = A.initializeApp(web, 'nhaclich');
@@ -4398,6 +4417,15 @@ function layToken(reg){
     return Promise.resolve(M.isSupported ? M.isSupported() : true).then(function(duoc){
       if(!duoc) throw loi('Trình duyệt này không nhận được thông báo khi đã tắt app');
       return M.getToken(M.getMessaging(app), { serviceWorkerRegistration: reg });
+    });
+  });
+}
+function layToken(reg){
+  return Promise.all([banKho(), layWeb()]).then(function(kq){
+    var ban = kq[0], web = kq[1], goc = ban >= 2 ? FB_MOI : FB_CU;
+    return xinMa(goc, web, reg)['catch'](function(e){
+      if(goc === FB_CU && loiBanKho(e)) return xinMa(FB_MOI, web, reg);   /* kho đã bị app khác nâng lên bản 2 ⇒ dùng 12.17.1 */
+      throw e;
     });
   }).then(function(tk){ if(!tk) throw loi('Google không trả mã nhận thông báo'); return tk; });
 }
@@ -4408,6 +4436,7 @@ function moTaLoi(e){
   if(e.nl) return String(e.message).slice(0, 240);
   var c = String(e.code || ''), m = String(e.message || e), g = '';
   if(e.name === 'AbortError') g = 'máy chủ chưa trả lời (mạng yếu)';
+  else if(loiBanKho(e)) g = 'trình duyệt đã có bộ Firebase mới hơn bản app này dùng (do app khác cùng tên miền) — báo Claude cập nhật bản Firebase cho Gà Nòi';
   else if(/Failed to fetch|NetworkError|Load failed|network/i.test(m)) g = 'không gọi được máy chủ — kiểm tra mạng';
   else if(c === 'messaging/permission-blocked' || c === 'messaging/permission-default') g = 'chưa được phép hiện thông báo';
   else if(c.indexOf('messaging/') === 0 || c.indexOf('installations/') === 0) g = 'Google chưa cấp mã nhận thông báo cho máy này';
