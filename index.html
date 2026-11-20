@@ -3831,6 +3831,7 @@ if (standalone()){ hideBar(); }
      • Khung 🔔 NGÀY MAI LÀM GÌ (ngay dưới ĐÀN GÀ ĐÃ LƯU): việc ngày mai của từng đàn, ngày đầu mỗi đợt kèm liều 1 ngày.
      • Bảng ⚙ THÔNG BÁO: bật / tắt, giờ báo (mặc định 18:00 tối hôm trước), gửi thử, xem trước 7 ngày, cách dùng.
      • [NL4] Xem thông báo NGÀY BẤT KỲ: nút 📅 dưới khung NGÀY MAI + mục cùng tên trong bảng ⚙ (chọn ngày · ◀ ▶ · hôm nay / ngày mai · ngày tuổi N) — chỉ xem, không gửi gì.
+     • [NL5] Mục ngày bất kỳ CHỮ TO, nút to (máy đặt cỡ chữ lớn tới 200% vẫn không tràn) — chỉ mục này, khung 7 ngày giữ nguyên.
      • Báo cả khi đã TẮT HẲN app: máy chủ "nhaclich" (Cloud Functions so-no-cc57a) + tệp nhaclich-sw.js đặt CẠNH index.html.
      • Liều lấy từ chính bảng thuốc của Máy tính liều PRO (khung calcProFrame): đổi liều ở máy tính thì thông báo đổi theo.
      • Chỉ bọc saveFlocksArr để biết đàn vừa đổi. Khối này lỗi thì app chạy y như cũ. ===== -->
@@ -3887,22 +3888,34 @@ if (standalone()){ hideBar(); }
 .nl-hd-in p{margin:6px 0;line-height:1.6}
 .nl-ver{font-size:9.5px;color:#555;text-align:right;margin-bottom:8px}
 .nl-ok{width:100%;padding:12px;border:0;border-radius:10px;background:#2a2a38;color:#fff;font-weight:900;font-size:13px}
-/* [NL4] XEM THÔNG BÁO NGÀY BẤT KỲ */
-.nl-nkb{display:block;width:100%;padding:10px 11px;border-radius:10px;border:1px dashed #58a6ff;background:#0d1626;color:#79c0ff;font-weight:800;font-size:12px;letter-spacing:.5px;text-align:center;cursor:pointer}
+/* [NL4] XEM THÔNG BÁO NGÀY BẤT KỲ · [NL5] CHỮ TO, nút to, mỗi nhóm nút 1 hàng riêng (máy đặt cỡ chữ lớn tới 200% vẫn không tràn).
+   Chỉ áp vào mục ngày bất kỳ (#nlNkSec, #nlNk, #nlXN, lớp .nl-nk* .nl-nb .nl-ch) — khung XEM TRƯỚC 7 NGÀY giữ nguyên cỡ cũ. */
+.nl-nkb{display:block;width:100%;padding:13px 12px;border-radius:11px;border:1.5px dashed #58a6ff;background:#0d1626;color:#8cc8ff;font-weight:800;font-size:15px;line-height:1.35;letter-spacing:.3px;text-align:center;cursor:pointer}
 .nl-nkb:active{transform:scale(.99)}
-.nl-nk{display:flex;align-items:stretch;gap:6px;margin-bottom:8px}
-.nl-nk .nl-sel{flex:1 1 auto;min-width:0;width:100%;min-height:42px;color-scheme:dark;text-align:center}
-.nl-nb{flex:0 0 46px;min-height:42px;padding:0;border-radius:9px;border:1.5px solid #FF8C00;background:#FF8C0022;color:#FF8C00;font-weight:900;font-size:15px;cursor:pointer}
-.nl-nb:active,.nl-ch:active{transform:scale(.96)}
-.nl-nk2{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
-.nl-ch{flex:0 0 auto;padding:8px 10px;border-radius:9px;border:1px solid #444;background:#13131C;color:#cfcfd6;font-weight:800;font-size:11px;letter-spacing:.4px;cursor:pointer}
+#nlNkSec{font-size:14.5px;letter-spacing:.5px;line-height:1.4;margin:18px 0 10px}
+.nl-nk{margin-bottom:8px}
+.nl-nk .nl-sel{display:block;width:100%;min-width:0;min-height:54px;padding:8px 4px;font-size:19px;font-weight:900;text-align:center;color-scheme:dark}
+#nlNk::-webkit-date-and-time-value{text-align:center}
+.nl-nk2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.nl-nb,.nl-ch{min-width:0;min-height:50px;padding:8px 3px;border-radius:10px;font-weight:900;font-size:16px;line-height:1.25;letter-spacing:0;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.nl-nb{border:1.5px solid #FF8C00;background:#FF8C0022;color:#FFA94D}
+.nl-ch{border:1.5px solid #555;background:#13131C;color:#e4e4ec}
 .nl-ch.on{border-color:#FF8C00;color:#FF8C00;background:#FF8C0022}
-.nl-nkN{display:flex;align-items:center;gap:6px;flex:1 1 130px;min-width:0}
-.nl-nkN label{font-size:10.5px;color:#888;font-weight:800;letter-spacing:.6px;white-space:nowrap}
-.nl-nkN select.nl-sel{flex:1 1 auto;min-width:0;max-width:160px;padding:8px 6px;font-size:13px}
-.nl-nkN input.nl-sel{flex:0 0 64px;width:64px;min-width:0;padding:8px 4px;text-align:center}
-.nl-nkt{font-size:11.5px;color:#cfcfd6;line-height:1.55;margin:0 0 8px}
-.nl-nkt b{color:#fff}
+.nl-nb:active,.nl-ch:active{transform:scale(.97)}
+.nl-nkN{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.nl-nkN label{font-size:14px;color:#b4b4c0;font-weight:800;letter-spacing:.4px}
+.nl-nkN2{display:flex;gap:8px;flex:1 1 180px;min-width:0}
+.nl-nkN select.nl-sel{flex:1 1 auto;min-width:0;min-height:48px;padding:8px;font-size:17px}
+.nl-nkN input.nl-sel{flex:0 0 96px;width:96px;min-width:0;min-height:48px;padding:8px 2px;font-size:20px;font-weight:900;text-align:center}
+.nl-nkt{font-size:15.5px;color:#dadae2;line-height:1.6;margin:0 0 10px}
+.nl-nkt b{color:#fff;font-size:17px}
+#nlXN{max-height:none;overflow:visible;padding:4px 12px}
+#nlXN .nl-xd{font-size:18px;line-height:1.35;margin:12px 0 4px;overflow-wrap:anywhere}
+#nlXN .nl-xi{padding:8px 0 10px}
+#nlXN .nl-xg{font-size:14.5px;line-height:1.45;letter-spacing:.2px;margin-bottom:6px;overflow-wrap:anywhere}
+#nlXN .nl-nho{font-size:15.5px;color:#c4c4ce;line-height:1.6}
+#nlXN .nl-xb .nl-l{font-size:17px;line-height:1.6;color:#eeeef4}
+#nlXN .nl-xb .nl-nho{font-size:15.5px;color:#c0c0cb}
 </style>
 <script>
 (function(){
@@ -4079,7 +4092,7 @@ var NLC = (function(){
 })();
 
 /* ---------- [NL1] GIAO DIỆN + THÔNG BÁO ĐẨY ---------- */
-var NL_VER   = '2026-11-20-NL4';
+var NL_VER   = '2026-11-20-NL5';
 /* [NL2] Kho "firebase-messaging-database" trong trình duyệt là CHUNG cả tên miền github.io (Sổ Nợ, Quản Trị, Gà Nòi…):
    Firebase 12.x (app Quản Trị) nâng kho lên bản 2; Firebase 10.12.0 (Sổ Nợ, Gà Nòi NL1) chỉ mở được bản 1
    ⇒ máy đã mở Quản Trị thì báo "The requested version (1) is less than the existing version (2)".
@@ -4274,7 +4287,7 @@ function chuTT(){
 
 /* ═════════ BẢNG ⚙ THÔNG BÁO ═════════ */
 var HUONG_DAN = '<p><b>Báo cái gì?</b> Mỗi đàn đã lưu (ngày vào gà + số con) có 1 thông báo mỗi tối: ngày mai Sáng làm gì, Chiều làm gì. <b>Ngày đầu của một đợt</b> có kèm <b>liều 1 ngày</b>, tính y như Máy tính liều PRO (số con × cân nặng chuẩn của ngày đó). Ngày 2, 3… của đợt chỉ nhắc tên — bạn tự tính.</p>'
-  + '<p><b>📅 Xem thông báo ngày bất kỳ:</b> bấm <b>📅 XEM THÔNG BÁO NGÀY BẤT KỲ</b> dưới khung NGÀY MAI LÀM GÌ (hoặc kéo xuống mục cùng tên trong bảng này) → chọn ngày trên lịch, bấm ◀ ▶ để lùi / tới từng ngày, bấm HÔM NAY / NGÀY MAI, hoặc gõ <b>ngày tuổi N</b> của đàn. App hiện đúng nội dung thông báo của ngày đó cho từng đàn — ngày đã qua hay ngày còn xa đều xem được. Ngày chọn là ngày làm việc; điện thoại báo tin của ngày đó vào tối hôm trước. Chỉ để xem: không gửi gì, không đổi lịch.</p>'
+  + '<p><b>📅 Xem thông báo ngày bất kỳ:</b> bấm <b>📅 XEM THÔNG BÁO NGÀY BẤT KỲ</b> dưới khung NGÀY MAI LÀM GÌ (hoặc kéo xuống mục cùng tên trong bảng này) → chọn ngày trên lịch, bấm <b>◀ NGÀY TRƯỚC</b> / <b>NGÀY SAU ▶</b> để lùi / tới từng ngày, bấm HÔM NAY / NGÀY MAI, hoặc gõ <b>ngày tuổi N</b> của đàn. App hiện đúng nội dung thông báo của ngày đó cho từng đàn — ngày đã qua hay ngày còn xa đều xem được. Ngày chọn là ngày làm việc; điện thoại báo tin của ngày đó vào tối hôm trước. Chỉ để xem: không gửi gì, không đổi lịch.</p>'
   + '<p><b>Thêm đàn / đổi số con / đổi ngày vào gà / xoá đàn:</b> làm ở mục 🐔 ĐÀN GÀ ĐÃ LƯU — vài giây sau app tự gửi lịch mới lên máy chủ (cần có mạng; mất mạng thì khi có mạng lại hoặc mở lại app sẽ tự gửi). Sửa <b>sau</b> giờ báo của tối đó thì tin tối đó đã gửi theo số cũ — từ tối hôm sau theo số mới (khung NGÀY MAI LÀM GÌ đổi ngay).</p>'
   + '<p><b>App có bản mới (đổi lịch 120 ngày, đổi liều…):</b> mở app 1 lần khi có mạng là app tự gửi lịch mới. Máy nào chưa mở thì thông báo có thêm dòng ⚠ nhắc mở app.</p>'
   + '<p><b>Android:</b> mở app bằng Chrome (hoặc app đã cài ra màn hình chính) → 🔔 BẬT THÔNG BÁO → Cho phép.</p>'
@@ -4297,9 +4310,10 @@ function dungBang(){
     + '<div class="nl-r2"><button type="button" id="nlThu" class="nl-b nl-b2" data-nl="thu">📲 GỬI THỬ</button><button type="button" id="nlTat" class="nl-b nl-b3" data-nl="tat">TẮT THÔNG BÁO</button></div>'
     + '<div class="nl-sec">XEM TRƯỚC 7 NGÀY TỚI</div><div id="nlXT" class="nl-xt"></div>'
     + '<div class="nl-sec" id="nlNkSec">📅 XEM THÔNG BÁO NGÀY BẤT KỲ</div>'
-    + '<div class="nl-nk"><button type="button" class="nl-nb" data-nl="nk-lui" aria-label="Ngày trước">◀</button><input type="date" id="nlNk" class="nl-sel" aria-label="Chọn ngày cần xem"><button type="button" class="nl-nb" data-nl="nk-toi" aria-label="Ngày sau">▶</button></div>'
-    + '<div class="nl-nk2"><button type="button" class="nl-ch" data-nl="nk-nay">HÔM NAY</button><button type="button" class="nl-ch" data-nl="nk-mai">NGÀY MAI</button>'
-    + '<span class="nl-nkN" id="nlNkN"><label for="nlNkSo">NGÀY TUỔI</label><select id="nlNkDan" class="nl-sel" aria-label="Chọn đàn"></select><input type="number" id="nlNkSo" class="nl-sel" min="0" inputmode="numeric" placeholder="N" aria-label="Ngày tuổi N của đàn"></span></div>'
+    + '<div class="nl-nk"><input type="date" id="nlNk" class="nl-sel" aria-label="Chọn ngày cần xem"></div>'
+    + '<div class="nl-nk2"><button type="button" class="nl-nb" data-nl="nk-lui" aria-label="Ngày trước">◀ NGÀY TRƯỚC</button><button type="button" class="nl-nb" data-nl="nk-toi" aria-label="Ngày sau">NGÀY SAU ▶</button></div>'
+    + '<div class="nl-nk2"><button type="button" class="nl-ch" data-nl="nk-nay">HÔM NAY</button><button type="button" class="nl-ch" data-nl="nk-mai">NGÀY MAI</button></div>'
+    + '<div class="nl-nkN" id="nlNkN"><label for="nlNkSo">NGÀY TUỔI</label><span class="nl-nkN2"><select id="nlNkDan" class="nl-sel" aria-label="Chọn đàn"></select><input type="number" id="nlNkSo" class="nl-sel" min="0" inputmode="numeric" placeholder="N" aria-label="Ngày tuổi N của đàn"></span></div>'
     + '<div id="nlNkT" class="nl-nkt"></div><div id="nlXN" class="nl-xt"></div>'
     + '<details class="nl-hdan"><summary>❓ Cách dùng · khi không thấy báo</summary><div class="nl-hd-in">' + HUONG_DAN + '</div></details>'
     + '<div class="nl-ver" id="nlVer"></div>'
