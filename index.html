@@ -3832,6 +3832,7 @@ if (standalone()){ hideBar(); }
      • Bảng ⚙ THÔNG BÁO: bật / tắt, giờ báo (mặc định 18:00 tối hôm trước), gửi thử, xem trước 7 ngày, cách dùng.
      • [NL4] Xem thông báo NGÀY BẤT KỲ: nút 📅 dưới khung NGÀY MAI + mục cùng tên trong bảng ⚙ (chọn ngày · ◀ ▶ · hôm nay / ngày mai · ngày tuổi N) — chỉ xem, không gửi gì.
      • [NL5] Mục ngày bất kỳ CHỮ TO, nút to (máy đặt cỡ chữ lớn tới 200% vẫn không tràn) — chỉ mục này, khung 7 ngày giữ nguyên.
+     • [NL6] CHỮ TO cho TOÀN phần thông báo: khung NGÀY MAI LÀM GÌ + cả bảng ⚙ (7 ngày tới, trạng thái, nút, giờ báo, hướng dẫn) — chỉ 1 khối CSS cuối, JS không đổi.
      • Báo cả khi đã TẮT HẲN app: máy chủ "nhaclich" (Cloud Functions so-no-cc57a) + tệp nhaclich-sw.js đặt CẠNH index.html.
      • Liều lấy từ chính bảng thuốc của Máy tính liều PRO (khung calcProFrame): đổi liều ở máy tính thì thông báo đổi theo.
      • Chỉ bọc saveFlocksArr để biết đàn vừa đổi. Khối này lỗi thì app chạy y như cũ. ===== -->
@@ -3916,6 +3917,47 @@ if (standalone()){ hideBar(); }
 #nlXN .nl-nho{font-size:15.5px;color:#c4c4ce;line-height:1.6}
 #nlXN .nl-xb .nl-l{font-size:17px;line-height:1.6;color:#eeeef4}
 #nlXN .nl-xb .nl-nho{font-size:15.5px;color:#c0c0cb}
+/* [NL6] CHỮ TO CHO TOÀN PHẦN THÔNG BÁO — khung 🔔 NGÀY MAI LÀM GÌ + bảng ⚙ THÔNG BÁO (7 ngày tới · ngày bất kỳ · trạng thái · nút · giờ báo · hướng dẫn).
+   Chỉ đè cỡ chữ / xuống dòng, đặt cuối khối nên thắng quy tắc cũ cùng độ ưu tiên; gỡ khối này là về y hệt NL5.
+   Dòng thuốc Sáng/Chiều 19px · tên đàn 20px · dòng tiêu đề tin 15,5px · ghi chú / cân / lý do 16,5px. Máy đặt cỡ chữ lớn (tới 200%): mọi hàng tự xuống dòng, không tràn. */
+.nl-hd{flex-wrap:wrap}
+.nl-ttl{font-size:15px;letter-spacing:.8px}
+.nl-cai{font-size:13.5px;padding:8px 12px}
+.nl-cn{font-size:20px;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+.nl-cs{font-size:15px;letter-spacing:.3px;line-height:1.4;margin:4px 0 6px}
+.nl-card .nl-l{font-size:19px;line-height:1.55;color:#eeeef4}
+.nl-card .nl-nho{font-size:16.5px;color:#c4c4ce}
+.nl-xem{font-size:13px;color:#8a8a96;margin-top:6px}
+.nl-empty{font-size:16px;color:#a8a8b2}
+.nl-moi{font-size:16px;line-height:1.5}
+.nl-moi button{font-size:16px;padding:10px 14px}
+.nl-ph{font-size:18px;line-height:1.35}
+.nl-psub{font-size:15.5px;color:#b4b4c0}
+.nl-tt{font-size:16px}
+.nl-b{font-size:16px;letter-spacing:0;line-height:1.3}
+.nl-gr{flex-wrap:wrap}
+.nl-gr label{font-size:14.5px;color:#b0b0bc}
+#nlGio{font-size:18px;max-width:100%}
+.nl-sec{font-size:15px;letter-spacing:.5px;line-height:1.4}
+.nl-xt{max-height:60vh}
+.nl-xd{font-size:20px;line-height:1.35;margin:10px 0 4px;overflow-wrap:anywhere}
+.nl-xi{padding:8px 0 10px}
+.nl-xg{font-size:15.5px;line-height:1.45;letter-spacing:.2px;margin-bottom:6px;overflow-wrap:anywhere}
+.nl-xt .nl-nho{font-size:16.5px;color:#c4c4ce;line-height:1.55}
+.nl-xt .nl-xb .nl-l{font-size:19px;line-height:1.55;color:#eeeef4}
+.nl-xt .nl-xb .nl-nho{font-size:16.5px;color:#c0c0cb}
+.nl-hdan{font-size:15.5px}
+.nl-ver{font-size:11.5px;color:#6a6a74}
+.nl-ok{font-size:16px}
+.nl-nkb{font-size:16px}
+#nlNkSec{font-size:15px}
+.nl-nkt{font-size:16.5px}
+.nl-nkt b{font-size:18px}
+#nlXN .nl-xd{font-size:20px}
+#nlXN .nl-xg{font-size:15.5px}
+#nlXN .nl-nho{font-size:16.5px}
+#nlXN .nl-xb .nl-l{font-size:19px;line-height:1.55}
+#nlXN .nl-xb .nl-nho{font-size:16.5px}
 </style>
 <script>
 (function(){
@@ -4092,7 +4134,7 @@ var NLC = (function(){
 })();
 
 /* ---------- [NL1] GIAO DIỆN + THÔNG BÁO ĐẨY ---------- */
-var NL_VER   = '2026-11-20-NL5';
+var NL_VER   = '2026-11-20-NL6';
 /* [NL2] Kho "firebase-messaging-database" trong trình duyệt là CHUNG cả tên miền github.io (Sổ Nợ, Quản Trị, Gà Nòi…):
    Firebase 12.x (app Quản Trị) nâng kho lên bản 2; Firebase 10.12.0 (Sổ Nợ, Gà Nòi NL1) chỉ mở được bản 1
    ⇒ máy đã mở Quản Trị thì báo "The requested version (1) is less than the existing version (2)".
