@@ -3830,6 +3830,7 @@ if (standalone()){ hideBar(); }
 <!-- ===== [NL1] NHẮC LỊCH TRƯỚC 1 NGÀY · PHẦN THÊM (không sửa lịch S, cân nặng W, liều, đàn gà, máy tính liều, Cân Gà) =====
      • Khung 🔔 NGÀY MAI LÀM GÌ (ngay dưới ĐÀN GÀ ĐÃ LƯU): việc ngày mai của từng đàn, ngày đầu mỗi đợt kèm liều 1 ngày.
      • Bảng ⚙ THÔNG BÁO: bật / tắt, giờ báo (mặc định 18:00 tối hôm trước), gửi thử, xem trước 7 ngày, cách dùng.
+     • [NL4] Xem thông báo NGÀY BẤT KỲ: nút 📅 dưới khung NGÀY MAI + mục cùng tên trong bảng ⚙ (chọn ngày · ◀ ▶ · hôm nay / ngày mai · ngày tuổi N) — chỉ xem, không gửi gì.
      • Báo cả khi đã TẮT HẲN app: máy chủ "nhaclich" (Cloud Functions so-no-cc57a) + tệp nhaclich-sw.js đặt CẠNH index.html.
      • Liều lấy từ chính bảng thuốc của Máy tính liều PRO (khung calcProFrame): đổi liều ở máy tính thì thông báo đổi theo.
      • Chỉ bọc saveFlocksArr để biết đàn vừa đổi. Khối này lỗi thì app chạy y như cũ. ===== -->
@@ -3886,6 +3887,22 @@ if (standalone()){ hideBar(); }
 .nl-hd-in p{margin:6px 0;line-height:1.6}
 .nl-ver{font-size:9.5px;color:#555;text-align:right;margin-bottom:8px}
 .nl-ok{width:100%;padding:12px;border:0;border-radius:10px;background:#2a2a38;color:#fff;font-weight:900;font-size:13px}
+/* [NL4] XEM THÔNG BÁO NGÀY BẤT KỲ */
+.nl-nkb{display:block;width:100%;padding:10px 11px;border-radius:10px;border:1px dashed #58a6ff;background:#0d1626;color:#79c0ff;font-weight:800;font-size:12px;letter-spacing:.5px;text-align:center;cursor:pointer}
+.nl-nkb:active{transform:scale(.99)}
+.nl-nk{display:flex;align-items:stretch;gap:6px;margin-bottom:8px}
+.nl-nk .nl-sel{flex:1 1 auto;min-width:0;width:100%;min-height:42px;color-scheme:dark;text-align:center}
+.nl-nb{flex:0 0 46px;min-height:42px;padding:0;border-radius:9px;border:1.5px solid #FF8C00;background:#FF8C0022;color:#FF8C00;font-weight:900;font-size:15px;cursor:pointer}
+.nl-nb:active,.nl-ch:active{transform:scale(.96)}
+.nl-nk2{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
+.nl-ch{flex:0 0 auto;padding:8px 10px;border-radius:9px;border:1px solid #444;background:#13131C;color:#cfcfd6;font-weight:800;font-size:11px;letter-spacing:.4px;cursor:pointer}
+.nl-ch.on{border-color:#FF8C00;color:#FF8C00;background:#FF8C0022}
+.nl-nkN{display:flex;align-items:center;gap:6px;flex:1 1 130px;min-width:0}
+.nl-nkN label{font-size:10.5px;color:#888;font-weight:800;letter-spacing:.6px;white-space:nowrap}
+.nl-nkN select.nl-sel{flex:1 1 auto;min-width:0;max-width:160px;padding:8px 6px;font-size:13px}
+.nl-nkN input.nl-sel{flex:0 0 64px;width:64px;min-width:0;padding:8px 4px;text-align:center}
+.nl-nkt{font-size:11.5px;color:#cfcfd6;line-height:1.55;margin:0 0 8px}
+.nl-nkt b{color:#fff}
 </style>
 <script>
 (function(){
@@ -4062,7 +4079,7 @@ var NLC = (function(){
 })();
 
 /* ---------- [NL1] GIAO DIỆN + THÔNG BÁO ĐẨY ---------- */
-var NL_VER   = '2026-11-19-NL3';
+var NL_VER   = '2026-11-20-NL4';
 /* [NL2] Kho "firebase-messaging-database" trong trình duyệt là CHUNG cả tên miền github.io (Sổ Nợ, Quản Trị, Gà Nòi…):
    Firebase 12.x (app Quản Trị) nâng kho lên bản 2; Firebase 10.12.0 (Sổ Nợ, Gà Nòi NL1) chỉ mở được bản 1
    ⇒ máy đã mở Quản Trị thì báo "The requested version (1) is less than the existing version (2)".
@@ -4160,6 +4177,7 @@ function dungHop(){
     if(a === 'cai') moBang();
     else if(a === 'bat'){ moBang(); bat(); }
     else if(a === 'xem') xemMai(t.getAttribute('data-id'), parseInt(t.getAttribute('data-n'), 10));
+    else if(a === 'ngay') moNgay();   /* [NL4] */
   });
   return hop;
 }
@@ -4190,6 +4208,7 @@ function veBang(){
         + '<div class="nl-xem">Bấm để xem ngày mai trong máy tính liều ›</div></div>';
     }
   }
+  if(ds.length) html += '<button type="button" class="nl-nkb" data-nl="ngay">📅 XEM THÔNG BÁO NGÀY BẤT KỲ ›</button>';   /* [NL4] */
   var L = $('nlList'); if(L && L._nl !== html){ L.innerHTML = html; L._nl = html; }
   h.style.display = '';
   veMoi(ds.length);
@@ -4255,6 +4274,7 @@ function chuTT(){
 
 /* ═════════ BẢNG ⚙ THÔNG BÁO ═════════ */
 var HUONG_DAN = '<p><b>Báo cái gì?</b> Mỗi đàn đã lưu (ngày vào gà + số con) có 1 thông báo mỗi tối: ngày mai Sáng làm gì, Chiều làm gì. <b>Ngày đầu của một đợt</b> có kèm <b>liều 1 ngày</b>, tính y như Máy tính liều PRO (số con × cân nặng chuẩn của ngày đó). Ngày 2, 3… của đợt chỉ nhắc tên — bạn tự tính.</p>'
+  + '<p><b>📅 Xem thông báo ngày bất kỳ:</b> bấm <b>📅 XEM THÔNG BÁO NGÀY BẤT KỲ</b> dưới khung NGÀY MAI LÀM GÌ (hoặc kéo xuống mục cùng tên trong bảng này) → chọn ngày trên lịch, bấm ◀ ▶ để lùi / tới từng ngày, bấm HÔM NAY / NGÀY MAI, hoặc gõ <b>ngày tuổi N</b> của đàn. App hiện đúng nội dung thông báo của ngày đó cho từng đàn — ngày đã qua hay ngày còn xa đều xem được. Ngày chọn là ngày làm việc; điện thoại báo tin của ngày đó vào tối hôm trước. Chỉ để xem: không gửi gì, không đổi lịch.</p>'
   + '<p><b>Thêm đàn / đổi số con / đổi ngày vào gà / xoá đàn:</b> làm ở mục 🐔 ĐÀN GÀ ĐÃ LƯU — vài giây sau app tự gửi lịch mới lên máy chủ (cần có mạng; mất mạng thì khi có mạng lại hoặc mở lại app sẽ tự gửi). Sửa <b>sau</b> giờ báo của tối đó thì tin tối đó đã gửi theo số cũ — từ tối hôm sau theo số mới (khung NGÀY MAI LÀM GÌ đổi ngay).</p>'
   + '<p><b>App có bản mới (đổi lịch 120 ngày, đổi liều…):</b> mở app 1 lần khi có mạng là app tự gửi lịch mới. Máy nào chưa mở thì thông báo có thêm dòng ⚠ nhắc mở app.</p>'
   + '<p><b>Android:</b> mở app bằng Chrome (hoặc app đã cài ra màn hình chính) → 🔔 BẬT THÔNG BÁO → Cho phép.</p>'
@@ -4276,6 +4296,11 @@ function dungBang(){
     + '<div class="nl-gr"><label for="nlGio">GIỜ BÁO · TỐI HÔM TRƯỚC</label><select id="nlGio" class="nl-sel">' + op + '</select></div>'
     + '<div class="nl-r2"><button type="button" id="nlThu" class="nl-b nl-b2" data-nl="thu">📲 GỬI THỬ</button><button type="button" id="nlTat" class="nl-b nl-b3" data-nl="tat">TẮT THÔNG BÁO</button></div>'
     + '<div class="nl-sec">XEM TRƯỚC 7 NGÀY TỚI</div><div id="nlXT" class="nl-xt"></div>'
+    + '<div class="nl-sec" id="nlNkSec">📅 XEM THÔNG BÁO NGÀY BẤT KỲ</div>'
+    + '<div class="nl-nk"><button type="button" class="nl-nb" data-nl="nk-lui" aria-label="Ngày trước">◀</button><input type="date" id="nlNk" class="nl-sel" aria-label="Chọn ngày cần xem"><button type="button" class="nl-nb" data-nl="nk-toi" aria-label="Ngày sau">▶</button></div>'
+    + '<div class="nl-nk2"><button type="button" class="nl-ch" data-nl="nk-nay">HÔM NAY</button><button type="button" class="nl-ch" data-nl="nk-mai">NGÀY MAI</button>'
+    + '<span class="nl-nkN" id="nlNkN"><label for="nlNkSo">NGÀY TUỔI</label><select id="nlNkDan" class="nl-sel" aria-label="Chọn đàn"></select><input type="number" id="nlNkSo" class="nl-sel" min="0" inputmode="numeric" placeholder="N" aria-label="Ngày tuổi N của đàn"></span></div>'
+    + '<div id="nlNkT" class="nl-nkt"></div><div id="nlXN" class="nl-xt"></div>'
     + '<details class="nl-hdan"><summary>❓ Cách dùng · khi không thấy báo</summary><div class="nl-hd-in">' + HUONG_DAN + '</div></details>'
     + '<div class="nl-ver" id="nlVer"></div>'
     + '<button type="button" class="nl-ok" data-nl="dong">ĐÓNG</button></div>';
@@ -4285,12 +4310,23 @@ function dungBang(){
     var t = ev.target && ev.target.closest ? ev.target.closest('[data-nl]') : null; if(!t) return;
     var a = t.getAttribute('data-nl');
     if(a === 'bat') bat(); else if(a === 'thu') thu(); else if(a === 'tat') tat(); else if(a === 'dong') dongBang();
+    else if(a === 'nk-lui' || a === 'nk-toi' || a === 'nk-nay' || a === 'nk-mai') nkBam(a);   /* [NL4] */
   });
   $('nlGio').addEventListener('change', function(){
     var v = parseInt(this.value, 10); if(!(v >= GIO_TU && v <= GIO_DEN)) return;
     st.gio = v; luuSt(); veTT(); veBang();
     if(st.bat) dongBo('gio', true).then(function(ok){ noi(ok ? '✅ Đã đổi giờ báo: ' + hai(v) + ':00' : '⚠ Chưa gửi được giờ mới lên máy chủ — app tự thử lại'); });
   });
+  /* [NL4] xem thông báo ngày bất kỳ: ô chọn ngày · chọn đàn · ngày tuổi N (lỗi ở đây không làm hỏng bảng) */
+  try{
+    var nkI = $('nlNk'), nkF = function(){ var d = docNgay(this.value); if(d){ nkDat(d); try{ veNgay(); }catch(e){} } };
+    nkI.addEventListener('change', nkF); nkI.addEventListener('input', nkF);
+    nkI.addEventListener('blur', function(){ try{ veNgay(); }catch(e){} });
+    $('nlNkDan').addEventListener('change', function(){ _nkDan = String(this.value || ''); try{ veNgay(); }catch(e){} });
+    var nkS = $('nlNkSo');
+    nkS.addEventListener('input', function(){ nkTheoN(this.value); });
+    nkS.addEventListener('blur', function(){ try{ veNgay(); }catch(e){} });
+  }catch(e){}
   return mask;
 }
 function moBang(){
@@ -4319,6 +4355,7 @@ function veTT(){
   if(g && String(g.value) !== String(st.gio)) g.value = String(st.gio);
   if(v) v.textContent = 'Nhắc lịch ' + NL_VER + ' · ' + TEN_APP + ' · máy …' + String(st.may || '').slice(-4);
   if(mask.classList.contains('on')) veXemTruoc();   /* bảng đang đóng thì khỏi soạn phần xem trước */
+  if(mask.classList.contains('on')){ try{ veNgay(); }catch(e){} }   /* [NL4] xem thông báo ngày bất kỳ */
 }
 function veXemTruoc(){
   var el = $('nlXT'); if(!el) return;
@@ -4340,6 +4377,113 @@ function veXemTruoc(){
   }
   if(!IT) html += '<div class="nl-nho">⏳ Máy tính liều chưa sẵn sàng — liều sẽ hiện sau vài giây.</div>';
   if(el._nl !== html){ el.innerHTML = html; el._nl = html; }
+}
+/* ═════════ [NL4] XEM THÔNG BÁO NGÀY BẤT KỲ (CHỈ XEM — không gửi gì lên máy chủ, không đổi lịch / đàn / giờ báo) ═════════
+   • Ngày chọn = NGÀY LÀM VIỆC (ngày được nhắc). Tin của ngày đó điện thoại báo lúc giờ báo TỐI HÔM TRƯỚC — y khung xem trước 7 ngày.
+   • Nội dung lấy từ đúng NLC.soanDan (cùng hàm soạn lịch gửi máy chủ) ⇒ y hệt tin thật, kể cả liều ngày đầu đợt.
+   • Mở bằng nút 📅 dưới khung NGÀY MAI LÀM GÌ (cuộn thẳng tới mục) hoặc kéo xuống trong bảng ⚙ THÔNG BÁO. */
+var _nkKieu = 'mai', _nk = null, _nkDan = '';      /* 'mai' | 'nay' = luôn theo ngày mai / hôm nay · 'tay' = ngày tự chọn (_nk) */
+var NGAY_MS = 86400000;
+function nkNgay(){
+  var hn = NLC.nuaDem(new Date());
+  if(_nkKieu === 'nay') return hn;
+  if(_nkKieu === 'tay' && _nk) return new Date(_nk.getTime());
+  return NLC.cong(hn, 1);
+}
+function nkDat(d){ var x = d ? NLC.nuaDem(d) : null; if(!x) return; _nk = x; _nkKieu = 'tay'; }
+function nkLech(a, b){ return Math.round((a.getTime() - b.getTime()) / NGAY_MS); }
+/* "2026-11-30" (ô chọn ngày) hoặc "30/11/2026" (máy cũ gõ tay) → ngày lúc 0 giờ; sai / chưa gõ xong ⇒ null */
+function docNgay(v){
+  var s = String(v == null ? '' : v).trim(), r, y, m, d, x;
+  if((r = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s))){ y = +r[1]; m = +r[2]; d = +r[3]; }
+  else if((r = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(s))){ d = +r[1]; m = +r[2]; y = +r[3]; }
+  else return null;
+  if(y < 2000 || y > 2100) return null;
+  x = new Date(y, m - 1, d);
+  if(isNaN(x.getTime()) || x.getFullYear() !== y || x.getMonth() !== m - 1 || x.getDate() !== d) return null;
+  return x;
+}
+function nkBam(a){
+  try{ var ae = D.activeElement; if(ae && (ae.id === 'nlNk' || ae.id === 'nlNkSo') && ae.blur) ae.blur(); }catch(e){}
+  var x = nkNgay();
+  if(a === 'nk-lui') nkDat(NLC.cong(x, -1));
+  else if(a === 'nk-toi') nkDat(NLC.cong(x, 1));
+  else if(a === 'nk-nay'){ _nkKieu = 'nay'; _nk = null; }
+  else if(a === 'nk-mai'){ _nkKieu = 'mai'; _nk = null; }
+  try{ veNgay(); }catch(e){}
+}
+/* gõ ngày tuổi N ⇒ nhảy tới ngày N của đàn đang chọn (1 đàn thì theo đàn đó) */
+function nkTheoN(v){
+  var n = parseInt(v, 10), ds = dsDan(), f = null, h0 = null, i;
+  if(!(n >= 0 && n <= 999)) return;
+  for(i = 0; i < ds.length; i++) if(String(ds[i].id) === _nkDan && NLC.nuaDem(ds[i].hatch)){ f = ds[i]; break; }
+  for(i = 0; !f && i < ds.length; i++) if(NLC.nuaDem(ds[i].hatch)) f = ds[i];
+  h0 = f ? NLC.nuaDem(f.hatch) : null; if(!h0) return;
+  nkDat(NLC.cong(h0, n));
+  try{ veNgay(); }catch(e){}
+}
+function veNgay(){
+  var el = $('nlXN'); if(!el) return;
+  var hn = NLC.nuaDem(new Date()), X = nkNgay(), toi = NLC.cong(X, -1), kToi = NLC.ymd(toi), kHn = NLC.ymd(hn), lech = nkLech(X, hn);
+  var S_ = lichS(), W_ = canW(), IT = bangThuoc(), cf = cauHinh(), ds = dsDan(), mx = S_ ? NLC.bangNgay(S_).__max : 0, html = '', i, j;
+  /* ô ngày · nút HÔM NAY / NGÀY MAI · dòng tóm tắt */
+  var ip = $('nlNk'), v = NLC.ymd(X);
+  if(ip && D.activeElement !== ip && ip.value !== v) ip.value = v;
+  var bN = mask ? mask.querySelectorAll('[data-nl="nk-nay"],[data-nl="nk-mai"]') : [];
+  for(i = 0; i < bN.length; i++){ var on = (bN[i].getAttribute('data-nl') === 'nk-nay') ? lech === 0 : lech === 1, cl = 'nl-ch' + (on ? ' on' : ''); if(bN[i].className !== cl) bN[i].className = cl; }
+  var tg = lech === 0 ? 'hôm nay' : lech === 1 ? 'ngày mai' : lech === -1 ? 'hôm qua' : lech === 2 ? 'ngày kia' : lech > 2 ? 'còn ' + lech + ' ngày nữa' : (-lech) + ' ngày trước';
+  var tt = $('nlNkT'), th = 'Việc của <b>' + esc(NLC.thu(X)) + ', ' + NLC.ddmm(X) + '/' + X.getFullYear() + '</b> (' + tg + ') · điện thoại báo lúc ' + hai(st.gio) + ':00 tối hôm trước.';
+  if(tt && tt._nl !== th){ tt.innerHTML = th; tt._nl = th; }
+  /* ô NGÀY TUỔI: theo đàn đang chọn (có từ 2 đàn mới hiện ô chọn đàn) */
+  var gN = $('nlNkN'), sel = $('nlNkDan'), oN = $('nlNkSo'), dsH = [], chon = null, kOp = '';
+  for(i = 0; i < ds.length; i++){ var h_ = NLC.nuaDem(ds[i].hatch); if(h_){ dsH.push({ f: ds[i], h0: h_ }); kOp += String(ds[i].id) + '\u0001' + String(ds[i].name || '') + '\u0002'; } }
+  for(i = 0; i < dsH.length; i++) if(String(dsH[i].f.id) === _nkDan){ chon = dsH[i]; break; }
+  if(!chon && dsH.length){ chon = dsH[0]; _nkDan = String(chon.f.id); }
+  if(gN) gN.style.display = dsH.length ? '' : 'none';
+  if(sel){
+    if(sel._nl !== kOp){ var op = ''; for(i = 0; i < dsH.length; i++) op += '<option value="' + esc(dsH[i].f.id) + '">' + esc(dsH[i].f.name || 'Đàn') + '</option>'; sel.innerHTML = op; sel._nl = kOp; }
+    sel.style.display = dsH.length > 1 ? '' : 'none';
+    if(chon && sel.value !== String(chon.f.id)) sel.value = String(chon.f.id);
+  }
+  if(oN && D.activeElement !== oN){ var nC = chon ? nkLech(X, chon.h0) : -1, vN = (nC >= 0 && nC <= 999) ? String(nC) : ''; if(oN.value !== vN) oN.value = vN; }
+  /* nội dung thông báo của ngày đó, từng đàn */
+  if(!S_ || !W_){ if(el._nl !== ''){ el.innerHTML = ''; el._nl = ''; } return; }
+  if(!ds.length) html = '<div class="nl-nho">Chưa có đàn nào — lưu đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU.</div>';
+  var bay = new Date(), daQua = kToi < kHn || (kToi === kHn && (bay.getHours() * 60 + bay.getMinutes()) > st.gio * 60);
+  var tenToi = (kToi === kHn) ? 'NAY' : (kToi === NLC.ymd(NLC.cong(hn, -1))) ? 'QUA' : esc(NLC.thu(toi)).toUpperCase();
+  for(i = 0; i < ds.length; i++){
+    var f = ds[i], so = parseInt(f.count, 10) || 0, h0 = NLC.nuaDem(f.hatch), L = [], e = null, ly = '';
+    try{ L = NLC.soanDan(S_, W_, IT, f, cf); }catch(er){ L = []; }
+    for(j = 0; j < L.length; j++) if(L[j].ngay === kToi){ e = L[j]; break; }
+    html += '<div class="nl-xd">🐔 ' + esc(f.name || 'Đàn') + ' · ' + so + ' con</div>';
+    if(e){
+      html += '<div class="nl-xi"><div class="nl-xg">TỐI ' + tenToi + ', ' + NLC.ddmm(toi) + ' · ' + hai(st.gio) + ':00' + (daQua ? ' (đã qua)' : '') + ' → MAI N' + e.N + ' (' + esc(NLC.thu(X)) + ', ' + NLC.ddmm(X) + ')</div>'
+        + '<div class="nl-xb">' + e.b.split('\n').map(dongHTML).join('') + '</div></div>';
+      continue;
+    }
+    if(!h0) ly = 'Đàn này chưa có ngày vào gà hợp lệ — sửa đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU.';
+    else if(!(so > 0)) ly = 'Đàn này chưa có số con nên không có thông báo — sửa đàn ở mục 🐔 ĐÀN GÀ ĐÃ LƯU.';
+    else{
+      var nn = nkLech(X, h0), n1 = NLC.cong(h0, 1), nc = NLC.cong(h0, mx);
+      if(nn < 1) ly = (nn === 0 ? 'Ngày này là ngày vào gà (N0) — chưa có việc. ' : 'Chưa tới lịch của đàn này. ') + 'N1 là ' + NLC.thu(n1) + ', ' + NLC.ddmm(n1) + '/' + n1.getFullYear() + '.';
+      else if(nn > mx) ly = 'Đã hết lịch ' + mx + ' ngày (ngày này là N' + nn + '). N' + mx + ' là ' + NLC.thu(nc) + ', ' + NLC.ddmm(nc) + '/' + nc.getFullYear() + '.';
+      else ly = 'Ngày N' + nn + ' không có việc trong lịch.';
+    }
+    html += '<div class="nl-xi"><div class="nl-nho">' + esc(ly) + '</div></div>';
+  }
+  if(ds.length && !IT) html += '<div class="nl-nho">⏳ Máy tính liều chưa sẵn sàng — liều sẽ hiện sau vài giây.</div>';
+  if(el._nl !== html){ el.innerHTML = html; el._nl = html; }
+}
+/* nút 📅 ở khung NGÀY MAI: mở bảng ⚙ và cuộn thẳng tới mục ngày bất kỳ */
+function moNgay(){
+  moBang();
+  setTimeout(function(){
+    try{
+      var s = $('nlNkSec'); if(!s || !mask || !mask.classList.contains('on')) return;
+      var y = Math.max(0, s.offsetTop - 8);
+      try{ mask.scrollTo({ top: y, behavior: 'smooth' }); }catch(e){ mask.scrollTop = y; }
+    }catch(e){}
+  }, 60);
 }
 function ve(){ try{ veBang(); }catch(e){} try{ veTT(); }catch(e){} }
 
